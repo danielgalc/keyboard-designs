@@ -51,7 +51,7 @@ class DesignController extends Controller
         ]);
 
         $file = $request->file('file');
-        $path = $file->store('designs', 'private');
+        $path = $file->store('designs', 'local');
 
         $design = Design::create([
             'name'            => $validated['name'],
@@ -90,7 +90,7 @@ class DesignController extends Controller
 
     public function download(Design $design)
     {
-        return Storage::disk('private')->download(
+        return Storage::disk('local')->download(
             $design->file_path,
             $design->file_name
         );
@@ -98,7 +98,7 @@ class DesignController extends Controller
 
     public function destroy(Design $design)
     {
-        Storage::disk('private')->delete($design->file_path);
+        Storage::disk('local')->delete($design->file_path);
         $design->delete();
 
         return redirect()->route('designs.index')
