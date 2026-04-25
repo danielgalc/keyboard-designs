@@ -10,23 +10,12 @@ class PrinterSeeder extends Seeder
     public function run(): void
     {
         $printers = [
-            [
-                'name'  => 'Mimaki',
-                'model' => 'UJF3042 MkIIe',
-                'notes' => null,
-            ],
-            [
-                'name'  => 'Nocai',
-                'model' => null, // Actualizar cuando se conozca el modelo exacto
-                'notes' => null,
-            ],
+            ['name' => 'Mimaki', 'model' => 'UJF3042 MkIIe', 'notes' => null],
+            ['name' => 'Nocai',  'model' => 'UV6090i-II',    'notes' => null],
         ];
 
         foreach ($printers as $printer) {
-            Printer::firstOrCreate(
-                ['name' => $printer['name']],
-                $printer
-            );
+            Printer::updateOrCreate(['name' => $printer['name']], $printer);
         }
     }
 }

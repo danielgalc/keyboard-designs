@@ -17,16 +17,23 @@ function formatDate(dateStr) {
 
 const inputClass = "block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500";
 
-// ── Modal encuadre ────────────────────────────────────────────────────────────
+const RESOLUTIONS = ['600x600', '600x900', '600x1200', '1200x1200'];
+
+// ── Modal configuración y encuadre ────────────────────────────────────────────
 function SettingsModal({ design, printer, setting, onClose }) {
+    const isMimaki = printer.name.toLowerCase().includes('mimaki');
+
     const { data, setData, post, processing, errors } = useForm({
-        offset_x: setting?.offset_x ?? '',
-        offset_y: setting?.offset_y ?? '',
-        width:    setting?.width    ?? '',
-        height:   setting?.height   ?? '',
-        scale:    setting?.scale    ?? '1',
-        copies:   setting?.copies   ?? '1',
-        notes:    setting?.notes    ?? '',
+        offset_x:   setting?.offset_x  ?? '',
+        offset_y:   setting?.offset_y  ?? '',
+        width:      setting?.width     ?? '',
+        height:     setting?.height    ?? '',
+        scale:      setting?.scale     ?? '1',
+        copies:     setting?.copies    ?? '1',
+        notes:      setting?.notes     ?? '',
+        ink_type:   setting?.ink_type  ?? (isMimaki ? 'Acrylic' : ''),
+        resolution: setting?.resolution ?? (isMimaki ? '600x600' : ''),
+        overprint:  setting?.overprint  ?? (isMimaki ? '2' : ''),
     });
 
     const submit = (e) => {
@@ -37,14 +44,7 @@ function SettingsModal({ design, printer, setting, onClose }) {
     const numField = (label, key, extra = {}) => (
         <div>
             <label className="block text-xs font-medium text-slate-500 mb-1">{label}</label>
-            <input
-                type="number"
-                step="any"
-                value={data[key]}
-                onChange={e => setData(key, e.target.value)}
-                className={inputClass}
-                {...extra}
-            />
+            <input type="number" step="any" value={data[key]} onChange={e => setData(key, e.target.value)} className={inputClass} {...extra} />
             {errors[key] && <p className="mt-1 text-xs text-red-600">{errors[key]}</p>}
         </div>
     );
@@ -54,7 +54,7 @@ function SettingsModal({ design, printer, setting, onClose }) {
             <div className="w-full max-w-lg rounded-xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
                     <div>
-                        <h2 className="text-base font-semibold text-slate-900">Datos de encuadre</h2>
+                        <h2 className="text-base font-semibold text-slate-900">Configuración y encuadre</h2>
                         <p className="text-sm text-slate-500">{printer.name}{printer.model && ` · ${printer.model}`}</p>
                     </div>
                     <button onClick={onClose} className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
@@ -63,31 +63,77 @@ function SettingsModal({ design, printer, setting, onClose }) {
                         </svg>
                     </button>
                 </div>
-                <form onSubmit={submit} className="p-6 space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        {numField('Offset X (mm)', 'offset_x')}
-                        {numField('Offset Y (mm)', 'offset_y')}
-                        {numField('Ancho (mm)', 'width', { min: 0 })}
-                        {numField('Alto (mm)', 'height', { min: 0 })}
-                        {numField('Escala', 'scale', { min: 0, step: '0.0001' })}
-                        {numField('Copias', 'copies', { min: 1, step: '1' })}
+                <form onSubmit={submit} className="p-6 space-y-5">
+                    {/* Encuadre */}
+                    <div>
+                        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Encuadre</p>
+                        <div className="grid grid-cols-2 gap-3">
+                            {numField(isMimaki ? 'Escaneo (X) mm' : 'Offset X (mm)', 'offset_x')}
+                            {numField(isMimaki ? 'Alimentación (Y) mm' : 'Offset Y (mm)', 'offset_y')}
+                            {numField('Ancho (mm)', 'width', { min: 0 })}
+                            {numField('Alto (mm)', 'height', { min: 0 })}
+                            {numField('Escala', 'scale', { min: 0, step: '0.0001' })}
+                            {numField('Copias', 'copies', { min: 1, step: '1' })}
+                        </div>
                     </div>
+
+                    {/* Campos específicos Mimaki */}
+                    {isMimaki && (
+                        <div>
+                            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Configuración Mimaki</p>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-500 mb-1">Tipo de tinta</label>
+                                    <input
+                                        type="text"
+                                        value={data.ink_type}
+                                        onChange={e => setData('ink_type', e.target.value)}
+                                        className={inputClass}
+                                        placeholder="Acrylic"
+                                    />
+                                    {errors.ink_type && <p className="mt-1 text-xs text-red-600">{errors.ink_type}</p>}
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-500 mb-1">Resolución</label>
+                                    <select
+                                        value={data.resolution}
+                                        onChange={e => setData('resolution', e.target.value)}
+                                        className={inputClass + ' cursor-pointer'}
+                                    >
+                                        {RESOLUTIONS.map(r => (
+                                            <option key={r} value={r}>{r}</option>
+                                        ))}
+                                    </select>
+                                    {errors.resolution && <p className="mt-1 text-xs text-red-600">{errors.resolution}</p>}
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-500 mb-1">Sobreimprimir</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="1"
+                                        value={data.overprint}
+                                        onChange={e => setData('overprint', e.target.value)}
+                                        className={inputClass}
+                                    />
+                                    {errors.overprint && <p className="mt-1 text-xs text-red-600">{errors.overprint}</p>}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Notas */}
                     <div>
                         <label className="block text-xs font-medium text-slate-500 mb-1">Notas adicionales</label>
-                        <textarea
-                            rows={3}
-                            value={data.notes}
-                            onChange={e => setData('notes', e.target.value)}
-                            className={inputClass}
-                            placeholder="Perfil de color, ajustes especiales..."
-                        />
+                        <textarea rows={2} value={data.notes} onChange={e => setData('notes', e.target.value)} className={inputClass} placeholder="Observaciones..." />
                     </div>
+
                     <div className="flex justify-end gap-3 pt-1">
                         <button type="button" onClick={onClose} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
                             Cancelar
                         </button>
                         <button type="submit" disabled={processing} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50 transition-colors">
-                            {processing ? 'Guardando...' : 'Guardar encuadre'}
+                            {processing ? 'Guardando...' : 'Guardar'}
                         </button>
                     </div>
                 </form>
@@ -153,18 +199,24 @@ function VerificationModal({ design, printer, onClose }) {
 
 // ── Tarjeta impresora ─────────────────────────────────────────────────────────
 function PrinterCard({ design, printer }) {
+    const isMimaki = printer.name.toLowerCase().includes('mimaki');
     const setting = design.printer_settings?.find(s => s.printer_id === printer.id);
     const latestVerification = design.verifications?.find(v => v.printer_id === printer.id);
     const [showSettings, setShowSettings]         = useState(false);
     const [showVerification, setShowVerification] = useState(false);
 
     const fields = [
-        ['Offset X', setting?.offset_x != null ? `${setting.offset_x} mm` : null],
-        ['Offset Y', setting?.offset_y != null ? `${setting.offset_y} mm` : null],
-        ['Ancho',    setting?.width    != null ? `${setting.width} mm`    : null],
-        ['Alto',     setting?.height   != null ? `${setting.height} mm`   : null],
-        ['Escala',   setting?.scale    != null ? String(setting.scale)    : null],
-        ['Copias',   setting?.copies   != null ? String(setting.copies)   : null],
+        [isMimaki ? 'Escaneo (X)' : 'Offset X', setting?.offset_x != null ? `${setting.offset_x} mm` : null],
+        [isMimaki ? 'Alimentación (Y)' : 'Offset Y', setting?.offset_y != null ? `${setting.offset_y} mm` : null],
+        ['Ancho',  setting?.width   != null ? `${setting.width} mm`  : null],
+        ['Alto',   setting?.height  != null ? `${setting.height} mm` : null],
+        ['Escala', setting?.scale   != null ? String(setting.scale)  : null],
+        ['Copias', setting?.copies  != null ? String(setting.copies) : null],
+        ...(isMimaki ? [
+            ['Tipo de tinta',  setting?.ink_type   ?? null],
+            ['Resolución',     setting?.resolution ?? null],
+            ['Sobreimprimir',  setting?.overprint  != null ? String(setting.overprint) : null],
+        ] : []),
     ];
 
     return (
@@ -224,7 +276,7 @@ function PrinterCard({ design, printer }) {
                         <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
-                        {setting ? 'Editar encuadre' : 'Añadir encuadre'}
+                        Configuración y encuadre
                     </button>
                     <button
                         onClick={() => setShowVerification(true)}

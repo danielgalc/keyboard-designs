@@ -17,6 +17,9 @@ class PrinterSetting extends Model
         'scale',
         'copies',
         'notes',
+        'ink_type',
+        'resolution',
+        'overprint',
         'updated_by',
     ];
 
@@ -27,6 +30,7 @@ class PrinterSetting extends Model
         'height'   => 'float',
         'scale'    => 'float',
         'copies'   => 'integer',
+        'overprint' => 'integer',
     ];
 
     public function design(): BelongsTo
