@@ -1,99 +1,114 @@
-import ApplicationLogo from '@/Components/ApplicationLogo';
-import Dropdown from '@/Components/Dropdown';
-import NavLink from '@/Components/NavLink';
-import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
-export default function Authenticated({ header, children }) {
-    const user = usePage().props.auth.user;
-    const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
+function NavItem({ href, active, children }) {
+    return (
+        <Link
+            href={href}
+            className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                active
+                    ? 'bg-white/10 text-white'
+                    : 'text-slate-300 hover:bg-white/5 hover:text-white'
+            }`}
+        >
+            {children}
+        </Link>
+    );
+}
+
+export default function AuthenticatedLayout({ header, children }) {
+    const { auth } = usePage().props;
+    const [menuOpen, setMenuOpen] = useState(false);
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            <nav className="border-b border-gray-100 bg-white">
+        <div className="min-h-screen bg-slate-50">
+            {/* Top nav */}
+            <nav className="bg-slate-900 shadow">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="flex h-16 justify-between">
-                        <div className="flex">
-                            <div className="flex shrink-0 items-center">
-                                <Link href="/">
-                                    <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800" />
-                                </Link>
-                            </div>
-                            <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink href={route('designs.index')} active={route().current('designs.*')}>
+                    <div className="flex h-14 items-center justify-between">
+                        {/* Brand + links */}
+                        <div className="flex items-center gap-6">
+                            <Link href={route('designs.index')} className="flex items-center gap-2">
+                                <span className="text-base font-bold tracking-tight text-white">
+                                    Keyboard<span className="text-indigo-400">Designs</span>
+                                </span>
+                            </Link>
+                            <div className="hidden items-center gap-1 sm:flex">
+                                <NavItem href={route('designs.index')} active={route().current('designs.*')}>
                                     Diseños
-                                </NavLink>
+                                </NavItem>
                             </div>
                         </div>
 
-                        <div className="hidden sm:ms-6 sm:flex sm:items-center">
-                            <div className="relative ms-3">
-                                <Dropdown>
-                                    <Dropdown.Trigger>
-                                        <span className="inline-flex rounded-md">
-                                            <button
-                                                type="button"
-                                                className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
-                                            >
-                                                {user.name}
-                                                <svg className="-me-0.5 ms-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                                                </svg>
-                                            </button>
-                                        </span>
-                                    </Dropdown.Trigger>
-                                    <Dropdown.Content>
-                                        <Dropdown.Link href={route('profile.edit')}>Profile</Dropdown.Link>
-                                        <Dropdown.Link href={route('logout')} method="post" as="button">
-                                            Log Out
-                                        </Dropdown.Link>
-                                    </Dropdown.Content>
-                                </Dropdown>
-                            </div>
-                        </div>
-
-                        <div className="-me-2 flex items-center sm:hidden">
+                        {/* User menu */}
+                        <div className="relative hidden sm:block">
                             <button
-                                onClick={() => setShowingNavigationDropdown((prev) => !prev)}
-                                className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 transition duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-500 focus:bg-gray-100 focus:text-gray-500 focus:outline-none"
+                                onClick={() => setMenuOpen(o => !o)}
+                                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
                             >
-                                <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                                    <path className={!showingNavigationDropdown ? 'inline-flex' : 'hidden'} strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                                    <path className={showingNavigationDropdown ? 'inline-flex' : 'hidden'} strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-indigo-500 text-xs font-semibold text-white">
+                                    {auth.user.name.charAt(0).toUpperCase()}
+                                </span>
+                                <span>{auth.user.name}</span>
+                                <svg className="h-4 w-4 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                 </svg>
                             </button>
+
+                            {menuOpen && (
+                                <>
+                                    <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
+                                    <div className="absolute right-0 z-20 mt-1 w-48 rounded-md border border-slate-700 bg-slate-800 py-1 shadow-lg">
+                                        <div className="border-b border-slate-700 px-4 py-2">
+                                            <p className="text-xs text-slate-400">Conectado como</p>
+                                            <p className="text-sm font-medium text-white truncate">{auth.user.email}</p>
+                                            <span className={`mt-1 inline-block rounded px-1.5 py-0.5 text-xs font-medium ${auth.user.role === 'admin' ? 'bg-indigo-500/20 text-indigo-300' : 'bg-slate-600 text-slate-300'}`}>
+                                                {auth.user.role}
+                                            </span>
+                                        </div>
+                                        <Link href={route('profile.edit')} className="block px-4 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white">
+                                            Mi perfil
+                                        </Link>
+                                        <Link href={route('logout')} method="post" as="button" className="block w-full px-4 py-2 text-left text-sm text-slate-300 hover:bg-white/5 hover:text-white">
+                                            Cerrar sesión
+                                        </Link>
+                                    </div>
+                                </>
+                            )}
                         </div>
+
+                        {/* Mobile menu button */}
+                        <button
+                            className="rounded-md p-2 text-slate-400 hover:bg-white/5 hover:text-white sm:hidden"
+                            onClick={() => setMenuOpen(o => !o)}
+                        >
+                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
                     </div>
                 </div>
 
-                <div className={(showingNavigationDropdown ? 'block' : 'hidden') + ' sm:hidden'}>
-                    <div className="space-y-1 pb-3 pt-2">
-                        <ResponsiveNavLink href={route('designs.index')} active={route().current('designs.*')}>
-                            Diseños
-                        </ResponsiveNavLink>
+                {/* Mobile dropdown */}
+                {menuOpen && (
+                    <div className="border-t border-slate-700 px-4 pb-3 pt-2 sm:hidden">
+                        <Link href={route('designs.index')} className="block rounded-md px-3 py-2 text-sm text-slate-300 hover:bg-white/5">Diseños</Link>
+                        <Link href={route('profile.edit')} className="block rounded-md px-3 py-2 text-sm text-slate-300 hover:bg-white/5">Mi perfil</Link>
+                        <Link href={route('logout')} method="post" as="button" className="block w-full rounded-md px-3 py-2 text-left text-sm text-slate-300 hover:bg-white/5">Cerrar sesión</Link>
                     </div>
-                    <div className="border-t border-gray-200 pb-1 pt-4">
-                        <div className="px-4">
-                            <div className="text-base font-medium text-gray-800">{user.name}</div>
-                            <div className="text-sm font-medium text-gray-500">{user.email}</div>
-                        </div>
-                        <div className="mt-3 space-y-1">
-                            <ResponsiveNavLink href={route('profile.edit')}>Profile</ResponsiveNavLink>
-                            <ResponsiveNavLink method="post" href={route('logout')} as="button">
-                                Log Out
-                            </ResponsiveNavLink>
-                        </div>
-                    </div>
-                </div>
+                )}
             </nav>
 
+            {/* Page header */}
             {header && (
-                <header className="bg-white shadow">
-                    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">{header}</div>
-                </header>
+                <div className="border-b border-slate-200 bg-white">
+                    <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+                        {header}
+                    </div>
+                </div>
             )}
 
+            {/* Content */}
             <main>{children}</main>
         </div>
     );
