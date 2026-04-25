@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Design;
+use App\Models\LaptopBrand;
+use App\Models\LaptopModel;
 use App\Models\Printer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -12,17 +14,21 @@ class DesignController extends Controller
 {
     public function index(Request $request)
     {
-        $designs = Design::with(['creator', 'verifications.printer', 'verifications.user'])
-            ->when($request->search, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'ilike', "%{$search}%")
-                      ->orWhere('laptop_brand', 'ilike', "%{$search}%")
-                      ->orWhere('laptop_model', 'ilike', "%{$search}%");
-                });
-            })
-            ->latest()
-            ->paginate(20)
-            ->withQueryString();
+        $search = $request->search;
+
+        $designs = Design::with([
+                'laptopModel.brand',
+                'creator',
+                'verifications' => fn ($q) => $q->with(['printer', 'user'])->latest('verified_at'),
+            ])
+            ->when($search, fn ($q) => $q->where(function ($q2) use ($search) {
+                $q2->where('name', 'ilike', "%{$search}%")
+                   ->orWhere('language', 'ilike', "%{$search}%")
+                   ->orWhereHas('laptopModel', fn ($q3) => $q3->where('name', 'ilike', "%{$search}%"))
+                   ->orWhereHas('laptopModel.brand', fn ($q3) => $q3->where('name', 'ilike', "%{$search}%"));
+            }))
+            ->orderBy('created_at')
+            ->get();
 
         $printers = Printer::where('active', true)->get();
 
@@ -35,36 +41,50 @@ class DesignController extends Controller
 
     public function create()
     {
-        return Inertia::render('Designs/Create');
+        $brands = LaptopBrand::with(['models' => fn ($q) => $q->orderBy('name')])
+            ->orderBy('name')
+            ->get();
+
+        return Inertia::render('Designs/Create', ['brands' => $brands]);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'            => 'required|string|max:255',
-            'laptop_brand'    => 'nullable|string|max:100',
-            'laptop_model'    => 'nullable|string|max:100',
-            'source_language' => 'nullable|string|max:10',
-            'target_language' => 'nullable|string|max:10',
-            'description'     => 'nullable|string|max:2000',
-            'file'            => 'required|file|max:51200', // 50MB máx
+            'brand_name'  => 'required|string|max:100',
+            'model_name'  => 'required|string|max:100',
+            'language'    => 'required|string|max:20',
+            'name'        => 'required|string|max:255',
+            'description' => 'nullable|string|max:2000',
+            'file'        => 'required|file|max:51200',
         ]);
+
+        if ($request->user()->isAdmin()) {
+            $brand = LaptopBrand::firstOrCreate(['name' => trim($validated['brand_name'])]);
+            $model = LaptopModel::firstOrCreate([
+                'laptop_brand_id' => $brand->id,
+                'name'            => trim($validated['model_name']),
+            ]);
+        } else {
+            $brand = LaptopBrand::where('name', trim($validated['brand_name']))->firstOrFail();
+            $model = LaptopModel::where('laptop_brand_id', $brand->id)
+                ->where('name', trim($validated['model_name']))
+                ->firstOrFail();
+        }
 
         $file = $request->file('file');
         $path = $file->store('designs', 'local');
 
         $design = Design::create([
-            'name'            => $validated['name'],
-            'laptop_brand'    => $validated['laptop_brand'] ?? null,
-            'laptop_model'    => $validated['laptop_model'] ?? null,
-            'source_language' => $validated['source_language'] ?? null,
-            'target_language' => $validated['target_language'] ?? null,
-            'description'     => $validated['description'] ?? null,
-            'file_path'       => $path,
-            'file_name'       => $file->getClientOriginalName(),
-            'file_mime_type'  => $file->getMimeType(),
-            'file_size'       => $file->getSize(),
-            'created_by'      => $request->user()->id,
+            'name'           => $validated['name'],
+            'laptop_model_id'=> $model->id,
+            'language'       => strtoupper(trim($validated['language'])),
+            'description'    => $validated['description'] ?? null,
+            'file_path'      => $path,
+            'file_name'      => $file->getClientOriginalName(),
+            'file_mime_type' => $file->getMimeType(),
+            'file_size'      => $file->getSize(),
+            'created_by'     => $request->user()->id,
         ]);
 
         return redirect()->route('designs.show', $design)
@@ -74,6 +94,7 @@ class DesignController extends Controller
     public function show(Design $design)
     {
         $design->load([
+            'laptopModel.brand',
             'creator',
             'printerSettings.printer',
             'printerSettings.updatedBy',
@@ -90,10 +111,7 @@ class DesignController extends Controller
 
     public function download(Design $design)
     {
-        return Storage::disk('local')->download(
-            $design->file_path,
-            $design->file_name
-        );
+        return Storage::disk('local')->download($design->file_path, $design->file_name);
     }
 
     public function destroy(Design $design)
@@ -101,7 +119,6 @@ class DesignController extends Controller
         Storage::disk('local')->delete($design->file_path);
         $design->delete();
 
-        return redirect()->route('designs.index')
-            ->with('success', 'Diseño eliminado.');
+        return redirect()->route('designs.index')->with('success', 'Diseño eliminado.');
     }
 }

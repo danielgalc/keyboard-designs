@@ -37,6 +37,11 @@ export default function AuthenticatedLayout({ header, children }) {
                                 <NavItem href={route('designs.index')} active={route().current('designs.*')}>
                                     Diseños
                                 </NavItem>
+                                {auth.user.role === 'admin' && (
+                                    <NavItem href={route('admin.catalog')} active={route().current('admin.*')}>
+                                        Catálogo
+                                    </NavItem>
+                                )}
                             </div>
                         </div>
 

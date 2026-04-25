@@ -276,7 +276,8 @@ export default function Show({ design, printers }) {
                         <div>
                             <h1 className="text-lg font-semibold text-slate-900">{design.name}</h1>
                             <p className="text-sm text-slate-500">
-                                {[design.laptop_brand, design.laptop_model].filter(Boolean).join(' ') || 'Sin modelo especificado'}
+                                {[design.laptop_model?.brand?.name, design.laptop_model?.name].filter(Boolean).join(' · ') || 'Sin modelo especificado'}
+                                {design.language && <span className="ml-2 rounded bg-indigo-50 px-1.5 py-0.5 text-xs font-bold text-indigo-600">{design.language}</span>}
                             </p>
                         </div>
                     </div>
@@ -325,11 +326,10 @@ export default function Show({ design, printers }) {
                     </div>
                     <dl className="grid grid-cols-2 gap-x-8 gap-y-4 px-6 py-5 sm:grid-cols-4">
                         {[
-                            ['Marca',         design.laptop_brand],
-                            ['Modelo',        design.laptop_model],
-                            ['Idioma origen', design.source_language],
-                            ['Idioma destino',design.target_language],
-                            ['Archivo',       design.file_name],
+                            ['Marca',   design.laptop_model?.brand?.name],
+                            ['Modelo',  design.laptop_model?.name],
+                            ['Idioma',  design.language],
+                            ['Archivo', design.file_name],
                             ['Tamaño',        formatBytes(design.file_size)],
                             ['Subido por',    design.creator?.name],
                             ['Fecha',         formatDate(design.created_at)],
