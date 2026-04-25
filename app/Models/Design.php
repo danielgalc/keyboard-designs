@@ -13,10 +13,8 @@ class Design extends Model
 
     protected $fillable = [
         'name',
-        'laptop_brand',
-        'laptop_model',
-        'source_language',
-        'target_language',
+        'laptop_model_id',
+        'language',
         'description',
         'file_path',
         'file_name',
@@ -28,6 +26,11 @@ class Design extends Model
     protected $casts = [
         'file_size' => 'integer',
     ];
+
+    public function laptopModel(): BelongsTo
+    {
+        return $this->belongsTo(LaptopModel::class);
+    }
 
     public function creator(): BelongsTo
     {
@@ -42,12 +45,5 @@ class Design extends Model
     public function verifications(): HasMany
     {
         return $this->hasMany(Verification::class)->latest('verified_at');
-    }
-
-    public function latestVerificationFor(int $printerId): ?Verification
-    {
-        return $this->verifications()
-            ->where('printer_id', $printerId)
-            ->first();
     }
 }
