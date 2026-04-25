@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\DesignController;
+use App\Http\Controllers\PrinterSettingController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\VerificationController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -21,6 +23,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/designs/{design}', [DesignController::class, 'show'])->name('designs.show');
     Route::get('/designs/{design}/download', [DesignController::class, 'download'])->name('designs.download');
     Route::delete('/designs/{design}', [DesignController::class, 'destroy'])->name('designs.destroy');
+    Route::post('/designs/{design}/settings/{printer}', [PrinterSettingController::class, 'upsert'])->name('designs.settings.upsert');
+    Route::post('/designs/{design}/verifications/{printer}', [VerificationController::class, 'store'])->name('designs.verifications.store');
 
     // Perfil
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
