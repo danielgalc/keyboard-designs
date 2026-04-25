@@ -28,7 +28,7 @@ function SettingsModal({ design, printer, setting, onClose }) {
         offset_y:   setting?.offset_y  ?? '',
         width:      setting?.width     ?? '',
         height:     setting?.height    ?? '',
-        scale:      setting?.scale     ?? '1',
+        scale:      setting?.scale     ?? '100',
         copies:     setting?.copies    ?? '1',
         notes:      setting?.notes     ?? '',
         ink_type:   setting?.ink_type  ?? (isMimaki ? 'Acrylic' : ''),
@@ -72,7 +72,7 @@ function SettingsModal({ design, printer, setting, onClose }) {
                             {numField(isMimaki ? 'Alimentación (Y) mm' : 'Offset Y (mm)', 'offset_y')}
                             {numField('Ancho (mm)', 'width', { min: 0 })}
                             {numField('Alto (mm)', 'height', { min: 0 })}
-                            {numField('Escala', 'scale', { min: 0, step: '0.0001' })}
+                            {numField('Escala (%)', 'scale', { min: 0, max: 999, step: '0.1' })}
                             {numField('Copias', 'copies', { min: 1, step: '1' })}
                         </div>
                     </div>
@@ -210,7 +210,7 @@ function PrinterCard({ design, printer }) {
         [isMimaki ? 'Alimentación (Y)' : 'Offset Y', setting?.offset_y != null ? `${setting.offset_y} mm` : null],
         ['Ancho',  setting?.width   != null ? `${setting.width} mm`  : null],
         ['Alto',   setting?.height  != null ? `${setting.height} mm` : null],
-        ['Escala', setting?.scale   != null ? String(setting.scale)  : null],
+        ['Escala', setting?.scale   != null ? `${setting.scale}%`    : null],
         ['Copias', setting?.copies  != null ? String(setting.copies) : null],
         ...(isMimaki ? [
             ['Tipo de tinta',  setting?.ink_type   ?? null],
