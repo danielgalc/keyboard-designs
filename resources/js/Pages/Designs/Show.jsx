@@ -15,6 +15,8 @@ function formatDate(dateStr) {
     });
 }
 
+const inputClass = "block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500";
+
 // ── Modal encuadre ────────────────────────────────────────────────────────────
 function SettingsModal({ design, printer, setting, onClose }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -29,20 +31,18 @@ function SettingsModal({ design, printer, setting, onClose }) {
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('designs.settings.upsert', [design.id, printer.id]), {
-            onSuccess: onClose,
-        });
+        post(route('designs.settings.upsert', [design.id, printer.id]), { onSuccess: onClose });
     };
 
-    const field = (label, key, extra = {}) => (
+    const numField = (label, key, extra = {}) => (
         <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>
+            <label className="block text-xs font-medium text-slate-500 mb-1">{label}</label>
             <input
                 type="number"
                 step="any"
                 value={data[key]}
                 onChange={e => setData(key, e.target.value)}
-                className="block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                className={inputClass}
                 {...extra}
             />
             {errors[key] && <p className="mt-1 text-xs text-red-600">{errors[key]}</p>}
@@ -50,42 +50,44 @@ function SettingsModal({ design, printer, setting, onClose }) {
     );
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-            <div className="w-full max-w-lg rounded-lg bg-white shadow-xl">
-                <div className="border-b px-6 py-4">
-                    <h2 className="text-base font-semibold text-gray-800">
-                        Encuadre — {printer.name} {printer.model && `(${printer.model})`}
-                    </h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={onClose}>
+            <div className="w-full max-w-lg rounded-xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+                    <div>
+                        <h2 className="text-base font-semibold text-slate-900">Datos de encuadre</h2>
+                        <p className="text-sm text-slate-500">{printer.name}{printer.model && ` · ${printer.model}`}</p>
+                    </div>
+                    <button onClick={onClose} className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
                 </div>
                 <form onSubmit={submit} className="p-6 space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                        {field('Offset X (mm)', 'offset_x')}
-                        {field('Offset Y (mm)', 'offset_y')}
-                        {field('Ancho (mm)', 'width', { min: 0 })}
-                        {field('Alto (mm)', 'height', { min: 0 })}
-                        {field('Escala', 'scale', { min: 0, step: '0.0001' })}
-                        {field('Copias', 'copies', { min: 1, step: '1' })}
+                        {numField('Offset X (mm)', 'offset_x')}
+                        {numField('Offset Y (mm)', 'offset_y')}
+                        {numField('Ancho (mm)', 'width', { min: 0 })}
+                        {numField('Alto (mm)', 'height', { min: 0 })}
+                        {numField('Escala', 'scale', { min: 0, step: '0.0001' })}
+                        {numField('Copias', 'copies', { min: 1, step: '1' })}
                     </div>
                     <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">Notas</label>
+                        <label className="block text-xs font-medium text-slate-500 mb-1">Notas adicionales</label>
                         <textarea
                             rows={3}
                             value={data.notes}
                             onChange={e => setData('notes', e.target.value)}
-                            className="block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            className={inputClass}
                             placeholder="Perfil de color, ajustes especiales..."
                         />
                     </div>
-                    <div className="flex justify-end gap-3 pt-2">
-                        <button type="button" onClick={onClose} className="text-sm text-gray-600 underline hover:text-gray-900">
+                    <div className="flex justify-end gap-3 pt-1">
+                        <button type="button" onClick={onClose} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
                             Cancelar
                         </button>
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="rounded-md bg-gray-800 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700 disabled:opacity-50"
-                        >
-                            {processing ? 'Guardando...' : 'Guardar'}
+                        <button type="submit" disabled={processing} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50 transition-colors">
+                            {processing ? 'Guardando...' : 'Guardar encuadre'}
                         </button>
                     </div>
                 </form>
@@ -100,44 +102,46 @@ function VerificationModal({ design, printer, onClose }) {
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('designs.verifications.store', [design.id, printer.id]), {
-            onSuccess: onClose,
-        });
+        post(route('designs.verifications.store', [design.id, printer.id]), { onSuccess: onClose });
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-            <div className="w-full max-w-md rounded-lg bg-white shadow-xl">
-                <div className="border-b px-6 py-4">
-                    <h2 className="text-base font-semibold text-gray-800">
-                        Registrar verificación — {printer.name}
-                    </h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={onClose}>
+            <div className="w-full max-w-md rounded-xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+                    <div>
+                        <h2 className="text-base font-semibold text-slate-900">Registrar verificación</h2>
+                        <p className="text-sm text-slate-500">{printer.name}</p>
+                    </div>
+                    <button onClick={onClose} className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
                 </div>
                 <form onSubmit={submit} className="p-6 space-y-4">
-                    <p className="text-sm text-gray-600">
-                        Estás confirmando que este diseño ha sido impreso y verificado correctamente en <strong>{printer.name}</strong>.
-                        Se registrará la fecha y hora actuales junto a tu nombre.
-                    </p>
+                    <div className="rounded-lg bg-emerald-50 border border-emerald-100 p-4 text-sm text-emerald-800">
+                        Confirmas que este diseño ha sido impreso y verificado en <strong>{printer.name}</strong>. Se registrará la fecha y hora actuales junto a tu nombre.
+                    </div>
                     <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">Observaciones (opcional)</label>
+                        <label className="block text-xs font-medium text-slate-500 mb-1">Observaciones (opcional)</label>
                         <textarea
                             rows={3}
                             value={data.notes}
                             onChange={e => setData('notes', e.target.value)}
-                            className="block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                            placeholder="Ej: resultado perfecto, sin ajustes necesarios..."
+                            className={inputClass}
+                            placeholder="Resultado perfecto, sin ajustes necesarios..."
                         />
                         {errors.notes && <p className="mt-1 text-xs text-red-600">{errors.notes}</p>}
                     </div>
-                    <div className="flex justify-end gap-3 pt-2">
-                        <button type="button" onClick={onClose} className="text-sm text-gray-600 underline hover:text-gray-900">
+                    <div className="flex justify-end gap-3 pt-1">
+                        <button type="button" onClick={onClose} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
                             Cancelar
                         </button>
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="rounded-md bg-green-700 px-4 py-2 text-sm font-semibold text-white hover:bg-green-600 disabled:opacity-50"
-                        >
+                        <button type="submit" disabled={processing} className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-50 transition-colors">
+                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
                             {processing ? 'Guardando...' : 'Confirmar verificación'}
                         </button>
                     </div>
@@ -151,94 +155,91 @@ function VerificationModal({ design, printer, onClose }) {
 function PrinterCard({ design, printer }) {
     const setting = design.printer_settings?.find(s => s.printer_id === printer.id);
     const latestVerification = design.verifications?.find(v => v.printer_id === printer.id);
-
     const [showSettings, setShowSettings]         = useState(false);
     const [showVerification, setShowVerification] = useState(false);
 
+    const fields = [
+        ['Offset X', setting?.offset_x != null ? `${setting.offset_x} mm` : null],
+        ['Offset Y', setting?.offset_y != null ? `${setting.offset_y} mm` : null],
+        ['Ancho',    setting?.width    != null ? `${setting.width} mm`    : null],
+        ['Alto',     setting?.height   != null ? `${setting.height} mm`   : null],
+        ['Escala',   setting?.scale    != null ? String(setting.scale)    : null],
+        ['Copias',   setting?.copies   != null ? String(setting.copies)   : null],
+    ];
+
     return (
         <>
-            <div className="rounded-lg border border-gray-200 p-5">
-                {/* Cabecera */}
-                <div className="flex items-center justify-between">
+            <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                {/* Header de la tarjeta */}
+                <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-5 py-3.5">
                     <div>
-                        <h3 className="font-semibold text-gray-800">{printer.name}</h3>
-                        {printer.model && <p className="text-xs text-gray-400">{printer.model}</p>}
+                        <h3 className="text-sm font-semibold text-slate-800">{printer.name}</h3>
+                        {printer.model && <p className="text-xs text-slate-400">{printer.model}</p>}
                     </div>
                     {latestVerification ? (
-                        <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
-                            ✓ Verificado el {new Date(latestVerification.verified_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
-                            <span className="ml-1 text-green-500">· {latestVerification.user?.name}</span>
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                            Verificado {new Date(latestVerification.verified_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                            <span className="text-emerald-500">· {latestVerification.user?.name}</span>
                         </span>
                     ) : (
-                        <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-500">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-600">
+                            <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
                             Sin verificar
                         </span>
                     )}
                 </div>
 
                 {/* Datos de encuadre */}
-                {setting ? (
-                    <div className="mt-4 grid grid-cols-2 gap-x-8 gap-y-2 text-sm sm:grid-cols-4">
-                        {[
-                            ['Offset X', setting.offset_x != null ? `${setting.offset_x} mm` : '—'],
-                            ['Offset Y', setting.offset_y != null ? `${setting.offset_y} mm` : '—'],
-                            ['Ancho',    setting.width    != null ? `${setting.width} mm`    : '—'],
-                            ['Alto',     setting.height   != null ? `${setting.height} mm`   : '—'],
-                            ['Escala',   setting.scale    != null ? setting.scale             : '—'],
-                            ['Copias',   setting.copies   ?? '—'],
-                        ].map(([label, value]) => (
-                            <div key={label}>
-                                <dt className="text-xs font-medium text-gray-400">{label}</dt>
-                                <dd className="text-gray-700">{value}</dd>
+                <div className="px-5 py-4">
+                    {setting ? (
+                        <div className="grid grid-cols-3 gap-x-6 gap-y-3 sm:grid-cols-6">
+                            {fields.map(([label, value]) => (
+                                <div key={label}>
+                                    <dt className="text-xs font-medium text-slate-400">{label}</dt>
+                                    <dd className="mt-0.5 text-sm font-semibold text-slate-700">{value ?? <span className="font-normal text-slate-300">—</span>}</dd>
+                                </div>
+                            ))}
+                            {setting.notes && (
+                                <div className="col-span-3 sm:col-span-6 mt-1 border-t border-slate-100 pt-3">
+                                    <dt className="text-xs font-medium text-slate-400">Notas</dt>
+                                    <dd className="mt-0.5 text-sm text-slate-600">{setting.notes}</dd>
+                                </div>
+                            )}
+                            <div className="col-span-3 sm:col-span-6 text-xs text-slate-400 mt-1">
+                                Actualizado por {setting.updated_by?.name ?? '—'} · {formatDate(setting.updated_at)}
                             </div>
-                        ))}
-                        {setting.notes && (
-                            <div className="col-span-2 sm:col-span-4">
-                                <dt className="text-xs font-medium text-gray-400">Notas</dt>
-                                <dd className="text-gray-600">{setting.notes}</dd>
-                            </div>
-                        )}
-                        <div className="col-span-2 sm:col-span-4 mt-1 text-xs text-gray-400">
-                            Actualizado por {setting.updated_by?.name ?? '—'} · {formatDate(setting.updated_at)}
                         </div>
-                    </div>
-                ) : (
-                    <p className="mt-3 text-sm text-gray-400">No hay datos de encuadre para esta impresora.</p>
-                )}
+                    ) : (
+                        <p className="text-sm text-slate-400 italic">Sin datos de encuadre todavía.</p>
+                    )}
+                </div>
 
                 {/* Acciones */}
-                <div className="mt-4 flex gap-4">
+                <div className="flex gap-2 border-t border-slate-100 bg-slate-50 px-5 py-3">
                     <button
                         onClick={() => setShowSettings(true)}
-                        className="text-xs text-indigo-600 hover:text-indigo-900"
+                        className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 transition-colors"
                     >
-                        {setting ? 'Editar encuadre' : '+ Añadir encuadre'}
+                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        {setting ? 'Editar encuadre' : 'Añadir encuadre'}
                     </button>
-                    <span className="text-gray-300">|</span>
                     <button
                         onClick={() => setShowVerification(true)}
-                        className="text-xs text-green-600 hover:text-green-900"
+                        className="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 shadow-sm hover:bg-emerald-100 transition-colors"
                     >
-                        + Registrar verificación
+                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Registrar verificación
                     </button>
                 </div>
             </div>
 
-            {showSettings && (
-                <SettingsModal
-                    design={design}
-                    printer={printer}
-                    setting={setting}
-                    onClose={() => setShowSettings(false)}
-                />
-            )}
-            {showVerification && (
-                <VerificationModal
-                    design={design}
-                    printer={printer}
-                    onClose={() => setShowVerification(false)}
-                />
-            )}
+            {showSettings && <SettingsModal design={design} printer={printer} setting={setting} onClose={() => setShowSettings(false)} />}
+            {showVerification && <VerificationModal design={design} printer={printer} onClose={() => setShowVerification(false)} />}
         </>
     );
 }
@@ -266,26 +267,37 @@ export default function Show({ design, printers }) {
         <AuthenticatedLayout
             header={
                 <div className="flex items-center justify-between">
-                    <div>
-                        <Link href={route('designs.index')} className="text-sm text-gray-400 hover:text-gray-600">
-                            ← Diseños
-                        </Link>
-                        <h2 className="mt-1 text-xl font-semibold leading-tight text-gray-800">
-                            {design.name}
-                        </h2>
-                    </div>
                     <div className="flex items-center gap-3">
+                        <Link href={route('designs.index')} className="text-slate-400 hover:text-slate-600 transition-colors">
+                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </Link>
+                        <div>
+                            <h1 className="text-lg font-semibold text-slate-900">{design.name}</h1>
+                            <p className="text-sm text-slate-500">
+                                {[design.laptop_brand, design.laptop_model].filter(Boolean).join(' ') || 'Sin modelo especificado'}
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
                         <a
                             href={route('designs.download', design.id)}
-                            className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
+                            className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors"
                         >
+                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
                             Descargar
                         </a>
                         {auth.user.role === 'admin' && (
                             <button
                                 onClick={handleDelete}
-                                className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500"
+                                className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 transition-colors"
                             >
+                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
                                 Eliminar
                             </button>
                         )}
@@ -295,106 +307,85 @@ export default function Show({ design, printers }) {
         >
             <Head title={design.name} />
 
-            {/* Toast notificación */}
             {toast && (
-                <div className="fixed bottom-6 right-6 z-50 rounded-lg bg-green-700 px-5 py-3 text-sm text-white shadow-lg">
+                <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-3 text-sm font-medium text-white shadow-lg">
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
                     {toast}
                 </div>
             )}
 
-            <div className="py-8">
-                <div className="mx-auto max-w-4xl space-y-6 px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
 
-                    {/* Información general */}
-                    <div className="rounded-lg bg-white p-6 shadow">
-                        <h3 className="mb-4 text-xs font-semibold uppercase tracking-wide text-gray-400">
-                            Información del diseño
-                        </h3>
-                        <dl className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-4">
-                            <div>
-                                <dt className="text-xs font-medium text-gray-400">Marca</dt>
-                                <dd className="text-gray-700">{design.laptop_brand || '—'}</dd>
-                            </div>
-                            <div>
-                                <dt className="text-xs font-medium text-gray-400">Modelo</dt>
-                                <dd className="text-gray-700">{design.laptop_model || '—'}</dd>
-                            </div>
-                            <div>
-                                <dt className="text-xs font-medium text-gray-400">Idioma origen</dt>
-                                <dd className="text-gray-700">{design.source_language || '—'}</dd>
-                            </div>
-                            <div>
-                                <dt className="text-xs font-medium text-gray-400">Idioma destino</dt>
-                                <dd className="text-gray-700">{design.target_language || '—'}</dd>
-                            </div>
-                            <div>
-                                <dt className="text-xs font-medium text-gray-400">Archivo</dt>
-                                <dd className="text-gray-700">{design.file_name}</dd>
-                            </div>
-                            <div>
-                                <dt className="text-xs font-medium text-gray-400">Tamaño</dt>
-                                <dd className="text-gray-700">{formatBytes(design.file_size)}</dd>
-                            </div>
-                            <div>
-                                <dt className="text-xs font-medium text-gray-400">Subido por</dt>
-                                <dd className="text-gray-700">{design.creator?.name}</dd>
-                            </div>
-                            <div>
-                                <dt className="text-xs font-medium text-gray-400">Fecha</dt>
-                                <dd className="text-gray-700">{formatDate(design.created_at)}</dd>
-                            </div>
-                            {design.description && (
-                                <div className="col-span-2 sm:col-span-4">
-                                    <dt className="text-xs font-medium text-gray-400">Descripción</dt>
-                                    <dd className="text-gray-600 whitespace-pre-line">{design.description}</dd>
-                                </div>
-                            )}
-                        </dl>
+                {/* Información general */}
+                <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+                    <div className="border-b border-slate-100 px-6 py-4">
+                        <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Información del diseño</h2>
                     </div>
-
-                    {/* Tarjetas por impresora */}
-                    <div>
-                        <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
-                            Datos por impresora
-                        </h3>
-                        <div className="space-y-4">
-                            {printers.map(printer => (
-                                <PrinterCard key={printer.id} design={design} printer={printer} />
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Historial de verificaciones */}
-                    {design.verifications?.length > 0 && (
-                        <div>
-                            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
-                                Historial de verificaciones
-                            </h3>
-                            <div className="rounded-lg bg-white shadow overflow-hidden">
-                                <table className="min-w-full divide-y divide-gray-100 text-sm">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">Impresora</th>
-                                            <th className="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">Verificado por</th>
-                                            <th className="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">Fecha</th>
-                                            <th className="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">Observaciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-100 bg-white">
-                                        {design.verifications.map(v => (
-                                            <tr key={v.id}>
-                                                <td className="px-5 py-3 text-gray-700">{v.printer?.name}</td>
-                                                <td className="px-5 py-3 text-gray-700">{v.user?.name}</td>
-                                                <td className="px-5 py-3 text-gray-500">{formatDate(v.verified_at)}</td>
-                                                <td className="px-5 py-3 text-gray-500">{v.notes || '—'}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                    <dl className="grid grid-cols-2 gap-x-8 gap-y-4 px-6 py-5 sm:grid-cols-4">
+                        {[
+                            ['Marca',         design.laptop_brand],
+                            ['Modelo',        design.laptop_model],
+                            ['Idioma origen', design.source_language],
+                            ['Idioma destino',design.target_language],
+                            ['Archivo',       design.file_name],
+                            ['Tamaño',        formatBytes(design.file_size)],
+                            ['Subido por',    design.creator?.name],
+                            ['Fecha',         formatDate(design.created_at)],
+                        ].map(([label, value]) => (
+                            <div key={label}>
+                                <dt className="text-xs font-medium text-slate-400">{label}</dt>
+                                <dd className="mt-0.5 text-sm text-slate-700">{value || <span className="text-slate-300">—</span>}</dd>
                             </div>
-                        </div>
-                    )}
+                        ))}
+                        {design.description && (
+                            <div className="col-span-2 sm:col-span-4 border-t border-slate-100 pt-4">
+                                <dt className="text-xs font-medium text-slate-400">Descripción</dt>
+                                <dd className="mt-0.5 text-sm text-slate-600 whitespace-pre-line">{design.description}</dd>
+                            </div>
+                        )}
+                    </dl>
                 </div>
+
+                {/* Impresoras */}
+                <div>
+                    <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Datos por impresora</h2>
+                    <div className="space-y-4">
+                        {printers.map(printer => (
+                            <PrinterCard key={printer.id} design={design} printer={printer} />
+                        ))}
+                    </div>
+                </div>
+
+                {/* Historial de verificaciones */}
+                {design.verifications?.length > 0 && (
+                    <div>
+                        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Historial de verificaciones</h2>
+                        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                            <table className="min-w-full">
+                                <thead>
+                                    <tr className="border-b border-slate-100 bg-slate-50">
+                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Impresora</th>
+                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Verificado por</th>
+                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Fecha</th>
+                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Observaciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {design.verifications.map(v => (
+                                        <tr key={v.id} className="hover:bg-slate-50">
+                                            <td className="px-5 py-3 text-sm font-medium text-slate-700">{v.printer?.name}</td>
+                                            <td className="px-5 py-3 text-sm text-slate-600">{v.user?.name}</td>
+                                            <td className="px-5 py-3 text-sm text-slate-500">{formatDate(v.verified_at)}</td>
+                                            <td className="px-5 py-3 text-sm text-slate-500">{v.notes || <span className="text-slate-300">—</span>}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
             </div>
         </AuthenticatedLayout>
     );
