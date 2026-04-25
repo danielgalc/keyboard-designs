@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             PrinterSeeder::class,
+            LaptopCatalogSeeder::class,
         ]);
 
         // Usuario administrador inicial
