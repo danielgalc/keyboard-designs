@@ -1,6 +1,7 @@
+import Combobox from '@/Components/Combobox';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 const inputClass = "block w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500";
 const selectClass = inputClass + " cursor-pointer";
@@ -73,63 +74,26 @@ export default function Create({ brands }) {
                         <h2 className="mb-5 text-xs font-semibold uppercase tracking-wide text-slate-400">Portátil</h2>
                         <div className="space-y-4">
                             <Field label="Marca" required error={errors.brand_name}>
-                                {isAdmin ? (
-                                    <>
-                                        <input
-                                            list="brands-list"
-                                            value={data.brand_name}
-                                            onChange={e => handleBrandChange(e.target.value)}
-                                            className={inputClass}
-                                            placeholder="Selecciona o escribe una marca nueva..."
-                                            autoComplete="off"
-                                        />
-                                        <datalist id="brands-list">
-                                            {brands.map(b => <option key={b.id} value={b.name} />)}
-                                        </datalist>
-                                        <p className="mt-1 text-xs text-indigo-600">Como admin puedes escribir una marca nueva.</p>
-                                    </>
-                                ) : (
-                                    <select
-                                        value={data.brand_name}
-                                        onChange={e => handleBrandChange(e.target.value)}
-                                        className={selectClass}
-                                    >
-                                        <option value="">Selecciona una marca...</option>
-                                        {brands.map(b => <option key={b.id} value={b.name}>{b.name}</option>)}
-                                    </select>
-                                )}
+                                <Combobox
+                                    value={data.brand_name}
+                                    onChange={handleBrandChange}
+                                    options={brands.map(b => b.name)}
+                                    placeholder="Selecciona una marca..."
+                                    allowNew={isAdmin}
+                                />
+                                {isAdmin && <p className="mt-1 text-xs text-indigo-600">Como admin puedes crear una marca nueva escribiéndola.</p>}
                             </Field>
 
                             <Field label="Modelo" required error={errors.model_name}>
-                                {isAdmin ? (
-                                    <>
-                                        <input
-                                            list="models-list"
-                                            value={data.model_name}
-                                            onChange={e => setData('model_name', e.target.value)}
-                                            className={inputClass}
-                                            placeholder={data.brand_name ? 'Selecciona o escribe un modelo nuevo...' : 'Selecciona primero una marca'}
-                                            disabled={!data.brand_name}
-                                            autoComplete="off"
-                                        />
-                                        <datalist id="models-list">
-                                            {availableModels.map(m => <option key={m.id} value={m.name} />)}
-                                        </datalist>
-                                        <p className="mt-1 text-xs text-indigo-600">Como admin puedes escribir un modelo nuevo.</p>
-                                    </>
-                                ) : (
-                                    <select
-                                        value={data.model_name}
-                                        onChange={e => setData('model_name', e.target.value)}
-                                        className={selectClass}
-                                        disabled={!data.brand_name}
-                                    >
-                                        <option value="">
-                                            {data.brand_name ? 'Selecciona un modelo...' : 'Selecciona primero una marca'}
-                                        </option>
-                                        {availableModels.map(m => <option key={m.id} value={m.name}>{m.name}</option>)}
-                                    </select>
-                                )}
+                                <Combobox
+                                    value={data.model_name}
+                                    onChange={v => setData('model_name', v)}
+                                    options={availableModels.map(m => m.name)}
+                                    placeholder="Selecciona un modelo..."
+                                    disabled={!data.brand_name}
+                                    allowNew={isAdmin}
+                                />
+                                {isAdmin && <p className="mt-1 text-xs text-indigo-600">Como admin puedes crear un modelo nuevo escribiéndolo.</p>}
                             </Field>
 
                             <Field label="Idioma del layout" required error={errors.language} hint="Ej: PT, EN, FR, DE...">
