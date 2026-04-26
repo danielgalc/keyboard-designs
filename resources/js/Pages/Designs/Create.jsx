@@ -159,7 +159,6 @@ export default function Create({ brands }) {
                                             onChange={e => setData('name', e.target.value)}
                                             className={inputClass}
                                             placeholder="Nombre del diseño"
-                                            autoFocus
                                         />
                                     </Field>
                                     <Field label="Descripción / notas" error={errors.description}>
