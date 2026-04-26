@@ -13,9 +13,8 @@ class PrinterSettingController extends Controller
         $validated = $request->validate([
             'offset_x'   => 'nullable|numeric',
             'offset_y'   => 'nullable|numeric',
-            'width'       => 'nullable|numeric|min:0',
-            'height'      => 'nullable|numeric|min:0',
-            'scale'       => 'nullable|numeric|min:0|max:999',
+            'rotation'   => 'nullable|integer|in:0,90,180,270',
+            'scale'      => 'nullable|numeric|min:0|max:999',
             'copies'      => 'nullable|integer|min:1',
             'notes'       => 'nullable|string|max:1000',
             'ink_type'    => 'nullable|string|max:100',

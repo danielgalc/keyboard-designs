@@ -26,8 +26,7 @@ function SettingsModal({ design, printer, setting, onClose }) {
     const { data, setData, post, processing, errors } = useForm({
         offset_x:   setting?.offset_x  ?? '',
         offset_y:   setting?.offset_y  ?? '',
-        width:      setting?.width     ?? '',
-        height:     setting?.height    ?? '',
+        rotation:   String(setting?.rotation ?? 0),
         scale:      setting?.scale     ?? '100',
         copies:     setting?.copies    ?? '1',
         notes:      setting?.notes     ?? '',
@@ -70,8 +69,26 @@ function SettingsModal({ design, printer, setting, onClose }) {
                         <div className="grid grid-cols-2 gap-3">
                             {numField(isMimaki ? 'Escaneo (X) mm' : 'Offset X (mm)', 'offset_x')}
                             {numField(isMimaki ? 'Alimentación (Y) mm' : 'Offset Y (mm)', 'offset_y')}
-                            {numField('Ancho (mm)', 'width', { min: 0 })}
-                            {numField('Alto (mm)', 'height', { min: 0 })}
+                            <div>
+                                <label className="block text-xs font-medium text-slate-500 mb-1">Rotación</label>
+                                <div className="grid grid-cols-4 gap-1.5">
+                                    {['0', '90', '180', '270'].map(deg => (
+                                        <button
+                                            key={deg}
+                                            type="button"
+                                            onClick={() => setData('rotation', deg)}
+                                            className={`rounded-lg border py-2 text-sm font-semibold transition-colors ${
+                                                data.rotation === deg
+                                                    ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                                                    : 'border-slate-200 bg-white text-slate-600 hover:border-indigo-300 hover:bg-slate-50'
+                                            }`}
+                                        >
+                                            {deg}°
+                                        </button>
+                                    ))}
+                                </div>
+                                {errors.rotation && <p className="mt-1 text-xs text-red-600">{errors.rotation}</p>}
+                            </div>
                             {numField('Escala (%)', 'scale', { min: 0, max: 999, step: '0.1' })}
                             {numField('Copias', 'copies', { min: 1, step: '1' })}
                         </div>
@@ -208,14 +225,13 @@ function PrinterCard({ design, printer }) {
     const fields = [
         [isMimaki ? 'Escaneo (X)' : 'Offset X', setting?.offset_x != null ? `${setting.offset_x} mm` : null],
         [isMimaki ? 'Alimentación (Y)' : 'Offset Y', setting?.offset_y != null ? `${setting.offset_y} mm` : null],
-        ['Ancho',  setting?.width   != null ? `${setting.width} mm`  : null],
-        ['Alto',   setting?.height  != null ? `${setting.height} mm` : null],
-        ['Escala', setting?.scale   != null ? `${setting.scale}%`    : null],
-        ['Copias', setting?.copies  != null ? String(setting.copies) : null],
+        ['Rotación', setting?.rotation != null ? `${setting.rotation}°` : null],
+        ['Escala',   setting?.scale    != null ? `${setting.scale}%`    : null],
+        ['Copias',   setting?.copies   != null ? String(setting.copies) : null],
         ...(isMimaki ? [
-            ['Tipo de tinta',  setting?.ink_type   ?? null],
-            ['Resolución',     setting?.resolution ?? null],
-            ['Sobreimprimir',  setting?.overprint  != null ? String(setting.overprint) : null],
+            ['Tipo de tinta', setting?.ink_type   ?? null],
+            ['Resolución',    setting?.resolution ?? null],
+            ['Sobreimprimir', setting?.overprint  != null ? String(setting.overprint) : null],
         ] : []),
     ];
 

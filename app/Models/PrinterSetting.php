@@ -12,8 +12,7 @@ class PrinterSetting extends Model
         'printer_id',
         'offset_x',
         'offset_y',
-        'width',
-        'height',
+        'rotation',
         'scale',
         'copies',
         'notes',
@@ -24,12 +23,11 @@ class PrinterSetting extends Model
     ];
 
     protected $casts = [
-        'offset_x' => 'float',
-        'offset_y' => 'float',
-        'width'    => 'float',
-        'height'   => 'float',
-        'scale'    => 'float',
-        'copies'   => 'integer',
+        'offset_x'  => 'float',
+        'offset_y'  => 'float',
+        'rotation'  => 'integer',
+        'scale'     => 'float',
+        'copies'    => 'integer',
         'overprint' => 'integer',
     ];
 
