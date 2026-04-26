@@ -4,6 +4,7 @@ use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\DesignController;
 use App\Http\Controllers\PrinterSettingController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\VerificationController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -27,8 +28,9 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile',  [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Admin — catálogo de marcas y modelos
+    // Admin
     Route::middleware('admin')->prefix('admin')->group(function () {
+        // Catálogo de marcas y modelos
         Route::get('/catalog',                       [CatalogController::class, 'index'])->name('admin.catalog');
         Route::post('/brands',                       [CatalogController::class, 'storeBrand'])->name('admin.brands.store');
         Route::patch('/brands/{brand}',              [CatalogController::class, 'updateBrand'])->name('admin.brands.update');
@@ -36,6 +38,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/brands/{brand}/models',        [CatalogController::class, 'storeModel'])->name('admin.models.store');
         Route::patch('/models/{model}',              [CatalogController::class, 'updateModel'])->name('admin.models.update');
         Route::delete('/models/{model}',             [CatalogController::class, 'destroyModel'])->name('admin.models.destroy');
+
+        // Usuarios
+        Route::get('/users',              [UserController::class, 'index'])->name('admin.users');
+        Route::post('/users',             [UserController::class, 'store'])->name('admin.users.store');
+        Route::patch('/users/{user}',     [UserController::class, 'update'])->name('admin.users.update');
+        Route::delete('/users/{user}',    [UserController::class, 'destroy'])->name('admin.users.destroy');
     });
 });
 
