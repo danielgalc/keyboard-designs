@@ -20,7 +20,7 @@ export default function Login({ status, canResetPassword }) {
             <div className="w-full max-w-sm">
                 {/* Logo */}
                 <div className="mb-8 flex flex-col items-center">
-                    <img src="/Logo%20completo.png" alt="KeyLayout" className="h-10 w-auto object-contain" />
+                    <img src="/Logo%20completo.png" alt="KeyLayout" className="h-20 w-auto object-contain" />
                     <p className="mt-3 text-sm text-slate-400">Repositorio de diseños de teclado</p>
                 </div>
 
