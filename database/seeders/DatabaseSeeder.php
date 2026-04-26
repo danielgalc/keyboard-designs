@@ -26,5 +26,15 @@ class DatabaseSeeder extends Seeder
                 'role'     => 'admin',
             ]
         );
+
+        // Usuario trabajador de ejemplo
+        User::firstOrCreate(
+            ['email' => 'daniel@keyboard-designs.local'],
+            [
+                'name'     => 'Daniel',
+                'password' => Hash::make('password'),
+                'role'     => 'operator',
+            ]
+        );
     }
 }
