@@ -481,15 +481,6 @@ function PrinterCard({ design, printer, settingLogs }) {
                         Configuración y encuadre
                     </button>
                     <button
-                        onClick={() => setShowVerification(true)}
-                        className="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 shadow-sm hover:bg-emerald-100 transition-colors"
-                    >
-                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Registrar verificación
-                    </button>
-                    <button
                         onClick={() => setShowTraceability(true)}
                         className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm hover:bg-slate-50 transition-colors"
                     >
@@ -502,6 +493,15 @@ function PrinterCard({ design, printer, settingLogs }) {
                                 {traceabilityCount}
                             </span>
                         )}
+                    </button>
+                    <button
+                        onClick={() => setShowVerification(true)}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 shadow-sm hover:bg-emerald-100 transition-colors"
+                    >
+                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Registrar verificación
                     </button>
                 </div>
             </div>
