@@ -110,6 +110,30 @@ class DesignController extends Controller
         ]);
     }
 
+    public function traceability(Design $design, Printer $printer)
+    {
+        $design->load(['laptopModel.brand', 'creator']);
+
+        $settingLogs = \App\Models\PrinterSettingLog::with('user')
+            ->where('design_id', $design->id)
+            ->where('printer_id', $printer->id)
+            ->latest('logged_at')
+            ->paginate(20);
+
+        $verifications = \App\Models\Verification::with('user')
+            ->where('design_id', $design->id)
+            ->where('printer_id', $printer->id)
+            ->latest('verified_at')
+            ->get();
+
+        return Inertia::render('Designs/Traceability', [
+            'design'       => $design,
+            'printer'      => $printer,
+            'settingLogs'  => $settingLogs,
+            'verifications'=> $verifications,
+        ]);
+    }
+
     public function edit(Design $design)
     {
         $design->load('laptopModel.brand');
