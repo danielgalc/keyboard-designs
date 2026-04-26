@@ -590,6 +590,7 @@ export default function Show({ design, printers, settingLogs }) {
     };
 
     return (
+        <>
         <AuthenticatedLayout
             header={
                 <div className="flex items-center justify-between">
@@ -707,5 +708,6 @@ export default function Show({ design, printers, settingLogs }) {
         </AuthenticatedLayout>
 
         {showPreview && <PreviewModal design={design} onClose={() => setShowPreview(false)} />}
+        </>
     );
 }
