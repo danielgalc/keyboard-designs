@@ -18,13 +18,22 @@ function VerificationDot({ design, printer }) {
     );
 }
 
+const DEVICE_TYPE_LABELS = {
+    laptop: 'Portátil',
+    tower:  'Torre',
+    sff:    'SFF',
+    mini:   'Mini',
+};
+
 function DesignRow({ design, printers }) {
     return (
-        <div className="flex items-center justify-between py-2.5 pl-10 pr-5 hover:bg-slate-50 group border-b border-slate-100 last:border-0">
+        <div className="flex items-center justify-between py-2.5 pl-14 pr-5 hover:bg-slate-50 group border-b border-slate-100 last:border-0">
             <div className="flex items-center gap-4 min-w-0">
-                <span className="inline-flex min-w-[2.5rem] items-center justify-center rounded bg-indigo-50 px-2 py-0.5 text-xs font-bold text-indigo-600">
-                    {design.language || '?'}
-                </span>
+                {design.language && (
+                    <span className="inline-flex min-w-[2.5rem] items-center justify-center rounded bg-indigo-50 px-2 py-0.5 text-xs font-bold text-indigo-600">
+                        {design.language}
+                    </span>
+                )}
                 <div className="min-w-0">
                     <p className="text-sm font-medium text-slate-800 truncate">{design.name}</p>
                     <p className="text-xs text-slate-400 truncate">{design.file_name}</p>
@@ -53,28 +62,39 @@ function DesignRow({ design, printers }) {
 
 function ModelSection({ modelName, designs, printers }) {
     const [open, setOpen] = useState(true);
-
     return (
         <div className="border-b border-slate-100 last:border-0">
-            <button
-                onClick={() => setOpen(o => !o)}
-                className="flex w-full items-center gap-2 py-2 pl-6 pr-5 text-left hover:bg-slate-50 transition-colors"
-            >
-                <svg className={`h-3.5 w-3.5 text-slate-400 transition-transform ${open ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <button onClick={() => setOpen(o => !o)} className="flex w-full items-center gap-2 py-2 pl-10 pr-5 text-left hover:bg-slate-50 transition-colors">
+                <svg className={`h-3 w-3 text-slate-400 transition-transform ${open ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-                <span className="text-sm font-semibold text-slate-600">{modelName}</span>
-                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
+                <span className="text-sm font-medium text-slate-600">{modelName}</span>
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-400">
                     {designs.length} {designs.length === 1 ? 'diseño' : 'diseños'}
                 </span>
             </button>
-            {open && (
-                <div>
-                    {designs.map(d => (
-                        <DesignRow key={d.id} design={d} printers={printers} />
-                    ))}
-                </div>
-            )}
+            {open && designs.map(d => <DesignRow key={d.id} design={d} printers={printers} />)}
+        </div>
+    );
+}
+
+function DeviceTypeSection({ typeName, models, printers }) {
+    const [open, setOpen] = useState(true);
+    const total = Object.values(models).reduce((sum, arr) => sum + arr.length, 0);
+    return (
+        <div className="border-b border-slate-100 last:border-0">
+            <button onClick={() => setOpen(o => !o)} className="flex w-full items-center gap-2 py-2 pl-6 pr-5 text-left hover:bg-slate-50 transition-colors">
+                <svg className={`h-3.5 w-3.5 text-slate-400 transition-transform ${open ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+                <span className="text-sm font-semibold text-slate-700">{typeName}</span>
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
+                    {Object.keys(models).length} modelos · {total} diseños
+                </span>
+            </button>
+            {open && Object.entries(models).map(([modelName, designs]) => (
+                <ModelSection key={modelName} modelName={modelName} designs={designs} printers={printers} />
+            ))}
         </div>
     );
 }
@@ -97,9 +117,10 @@ function BrandLogo({ brandName }) {
     );
 }
 
-function BrandSection({ brandName, models, printers }) {
+function BrandSection({ brandName, deviceTypes, printers }) {
     const [open, setOpen] = useState(true);
-    const total = Object.values(models).reduce((sum, arr) => sum + arr.length, 0);
+    const total = Object.values(deviceTypes).reduce((sum, models) =>
+        sum + Object.values(models).reduce((s, arr) => s + arr.length, 0), 0);
 
     return (
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -112,16 +133,17 @@ function BrandSection({ brandName, models, printers }) {
                 </svg>
                 <BrandLogo brandName={brandName} />
                 <span className="rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-medium text-slate-600">
-                    {Object.keys(models).length} modelos · {total} diseños
+                    {total} diseños
                 </span>
             </button>
-            {open && (
-                <div>
-                    {Object.entries(models).map(([modelName, designs]) => (
-                        <ModelSection key={modelName} modelName={modelName} designs={designs} printers={printers} />
-                    ))}
-                </div>
-            )}
+            {open && Object.entries(deviceTypes).map(([typeKey, models]) => (
+                <DeviceTypeSection
+                    key={typeKey}
+                    typeName={DEVICE_TYPE_LABELS[typeKey] ?? typeKey}
+                    models={models}
+                    printers={printers}
+                />
+            ))}
         </div>
     );
 }
@@ -155,15 +177,17 @@ export default function Index({ designs, printers, filters }) {
         return () => clearTimeout(t);
     }, [search]);
 
-    // Agrupar diseños en árbol: brand → model → [designs]
+    // Agrupar diseños en árbol: brand → device_type → model → [designs]
     const tree = useMemo(() => {
         const result = {};
         for (const design of designs) {
             const brand = design.laptop_model?.brand?.name ?? 'Sin marca';
+            const type  = design.laptop_model?.device_type ?? 'laptop';
             const model = design.laptop_model?.name ?? 'Sin modelo';
             if (!result[brand]) result[brand] = {};
-            if (!result[brand][model]) result[brand][model] = [];
-            result[brand][model].push(design);
+            if (!result[brand][type]) result[brand][type] = {};
+            if (!result[brand][type][model]) result[brand][type][model] = [];
+            result[brand][type][model].push(design);
         }
         return result;
     }, [designs]);
@@ -237,8 +261,8 @@ export default function Index({ designs, printers, filters }) {
                     </div>
                 ) : (
                     <div className="space-y-4">
-                        {Object.entries(tree).sort(([a], [b]) => a.localeCompare(b)).map(([brandName, models]) => (
-                            <BrandSection key={brandName} brandName={brandName} models={models} printers={printers} />
+                        {Object.entries(tree).sort(([a], [b]) => a.localeCompare(b)).map(([brandName, deviceTypes]) => (
+                            <BrandSection key={brandName} brandName={brandName} deviceTypes={deviceTypes} printers={printers} />
                         ))}
                     </div>
                 )}

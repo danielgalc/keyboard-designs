@@ -52,6 +52,7 @@ class DesignController extends Controller
     {
         $validated = $request->validate([
             'brand_name'  => 'required|string|max:100',
+            'device_type' => 'required|in:laptop,tower,sff,mini',
             'model_name'  => 'required|string|max:100',
             'language'    => 'nullable|string|max:20',
             'name'        => 'required|string|max:255',
@@ -60,10 +61,10 @@ class DesignController extends Controller
         ]);
 
         $brand = LaptopBrand::firstOrCreate(['name' => trim($validated['brand_name'])]);
-        $model = LaptopModel::firstOrCreate([
-            'laptop_brand_id' => $brand->id,
-            'name'            => trim($validated['model_name']),
-        ]);
+        $model = LaptopModel::firstOrCreate(
+            ['laptop_brand_id' => $brand->id, 'device_type' => $validated['device_type'], 'name' => trim($validated['model_name'])],
+            ['device_type' => $validated['device_type']]
+        );
 
         $file = $request->file('file');
         $path = $file->store('designs', 'local');
@@ -152,6 +153,7 @@ class DesignController extends Controller
     {
         $validated = $request->validate([
             'brand_name'  => 'required|string|max:100',
+            'device_type' => 'required|in:laptop,tower,sff,mini',
             'model_name'  => 'required|string|max:100',
             'language'    => 'nullable|string|max:20',
             'name'        => 'required|string|max:255',
@@ -160,10 +162,10 @@ class DesignController extends Controller
         ]);
 
         $brand = LaptopBrand::firstOrCreate(['name' => trim($validated['brand_name'])]);
-        $model = LaptopModel::firstOrCreate([
-            'laptop_brand_id' => $brand->id,
-            'name'            => trim($validated['model_name']),
-        ]);
+        $model = LaptopModel::firstOrCreate(
+            ['laptop_brand_id' => $brand->id, 'device_type' => $validated['device_type'], 'name' => trim($validated['model_name'])],
+            ['device_type' => $validated['device_type']]
+        );
 
         $design->name            = $validated['name'];
         $design->laptop_model_id = $model->id;

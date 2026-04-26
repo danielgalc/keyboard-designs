@@ -50,10 +50,13 @@ class CatalogController extends Controller
     public function storeModel(Request $request, LaptopBrand $brand)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:100',
+            'name'        => 'required|string|max:100',
+            'device_type' => 'required|in:laptop,tower,sff,mini',
         ]);
 
-        $brand->models()->firstOrCreate(['name' => $validated['name']]);
+        $brand->models()->firstOrCreate(
+            ['name' => $validated['name'], 'device_type' => $validated['device_type']]
+        );
 
         return back()->with('success', 'Modelo añadido.');
     }

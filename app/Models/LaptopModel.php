@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class LaptopModel extends Model
 {
-    protected $fillable = ['laptop_brand_id', 'name'];
+    protected $fillable = ['laptop_brand_id', 'device_type', 'name'];
 
     public function brand(): BelongsTo
     {
