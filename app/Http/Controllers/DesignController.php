@@ -59,18 +59,11 @@ class DesignController extends Controller
             'file'        => 'required|file|max:51200',
         ]);
 
-        if ($request->user()->isAdmin()) {
-            $brand = LaptopBrand::firstOrCreate(['name' => trim($validated['brand_name'])]);
-            $model = LaptopModel::firstOrCreate([
-                'laptop_brand_id' => $brand->id,
-                'name'            => trim($validated['model_name']),
-            ]);
-        } else {
-            $brand = LaptopBrand::where('name', trim($validated['brand_name']))->firstOrFail();
-            $model = LaptopModel::where('laptop_brand_id', $brand->id)
-                ->where('name', trim($validated['model_name']))
-                ->firstOrFail();
-        }
+        $brand = LaptopBrand::firstOrCreate(['name' => trim($validated['brand_name'])]);
+        $model = LaptopModel::firstOrCreate([
+            'laptop_brand_id' => $brand->id,
+            'name'            => trim($validated['model_name']),
+        ]);
 
         $file = $request->file('file');
         $path = $file->store('designs', 'local');
