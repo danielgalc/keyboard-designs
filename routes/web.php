@@ -18,7 +18,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/designs/create',                             [DesignController::class, 'create'])->name('designs.create');
     Route::post('/designs',                                   [DesignController::class, 'store'])->name('designs.store');
     Route::get('/designs/{design}',                           [DesignController::class, 'show'])->name('designs.show');
-    Route::get('/designs/{design}/edit',          [DesignController::class, 'edit'])->name('designs.edit');
+    Route::get('/designs/{design}/edit',                              [DesignController::class, 'edit'])->name('designs.edit');
+    Route::get('/designs/{design}/traceability/{printer}',            [DesignController::class, 'traceability'])->name('designs.traceability');
     Route::patch('/designs/{design}',             [DesignController::class, 'update'])->name('designs.update');
     Route::get('/designs/{design}/download',                  [DesignController::class, 'download'])->name('designs.download');
     Route::delete('/designs/{design}',                        [DesignController::class, 'destroy'])->name('designs.destroy');
