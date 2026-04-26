@@ -96,9 +96,17 @@ class DesignController extends Controller
 
         $printers = Printer::where('active', true)->get();
 
+        // Logs de configuración agrupados por impresora
+        $settingLogs = \App\Models\PrinterSettingLog::with('user')
+            ->where('design_id', $design->id)
+            ->latest('logged_at')
+            ->get()
+            ->groupBy('printer_id');
+
         return Inertia::render('Designs/Show', [
-            'design'   => $design,
-            'printers' => $printers,
+            'design'      => $design,
+            'printers'    => $printers,
+            'settingLogs' => $settingLogs,
         ]);
     }
 

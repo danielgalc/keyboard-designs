@@ -19,6 +19,161 @@ const inputClass = "block w-full rounded-lg border border-slate-200 bg-white px-
 
 const RESOLUTIONS = ['600x600', '600x900', '600x1200', '1200x1200'];
 
+const FIELD_LABELS = {
+    offset_x:   'Escaneo X / Offset X',
+    offset_y:   'Alimentación Y / Offset Y',
+    rotation:   'Rotación',
+    scale:      'Escala',
+    copies:     'Copias',
+    notes:      'Notas',
+    ink_type:   'Tipo de tinta',
+    resolution: 'Resolución',
+    overprint:  'Sobreimprimir',
+};
+
+// ── Modal trazabilidad ────────────────────────────────────────────────────────
+function TraceabilityModal({ design, printer, settingLogs, verifications, onClose }) {
+    const logs = settingLogs?.[printer.id] ?? [];
+    const verifs = verifications?.filter(v => v.printer_id === printer.id) ?? [];
+
+    // Combinar y ordenar todos los eventos por fecha desc
+    const events = [
+        ...logs.map(l => ({ type: 'config', date: l.logged_at, data: l })),
+        ...verifs.map(v => ({ type: 'verified', date: v.verified_at, data: v })),
+    ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={onClose}>
+            <div className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
+                {/* Header */}
+                <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 shrink-0">
+                    <div>
+                        <h2 className="text-base font-semibold text-slate-900">Trazabilidad</h2>
+                        <p className="text-sm text-slate-500">{printer.name}{printer.model && ` · ${printer.model}`}</p>
+                    </div>
+                    <button onClick={onClose} className="rounded-md p-1 text-slate-400 hover:bg-slate-100">
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                {/* Timeline */}
+                <div className="overflow-y-auto px-6 py-4">
+                    {/* Evento de creación del diseño (siempre primero al fondo) */}
+                    {events.length === 0 && (
+                        <p className="py-8 text-center text-sm text-slate-400">Sin actividad registrada para esta impresora.</p>
+                    )}
+
+                    <div className="relative">
+                        {/* Línea vertical */}
+                        {events.length > 0 && (
+                            <div className="absolute left-4 top-2 bottom-2 w-px bg-slate-200" />
+                        )}
+
+                        <div className="space-y-5">
+                            {events.map((event, i) => (
+                                <div key={i} className="flex gap-4">
+                                    {/* Icono */}
+                                    <div className={`relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+                                        event.type === 'verified'
+                                            ? 'bg-emerald-100'
+                                            : event.data.action === 'created'
+                                                ? 'bg-indigo-100'
+                                                : 'bg-amber-100'
+                                    }`}>
+                                        {event.type === 'verified' ? (
+                                            <svg className="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        ) : event.data.action === 'created' ? (
+                                            <svg className="h-4 w-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                            </svg>
+                                        ) : (
+                                            <svg className="h-4 w-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                        )}
+                                    </div>
+
+                                    {/* Contenido */}
+                                    <div className="flex-1 pb-1">
+                                        <div className="flex items-center justify-between">
+                                            <p className="text-sm font-semibold text-slate-800">
+                                                {event.type === 'verified'
+                                                    ? 'Verificación registrada'
+                                                    : event.data.action === 'created'
+                                                        ? 'Configuración inicial guardada'
+                                                        : 'Configuración actualizada'}
+                                            </p>
+                                            <span className="text-xs text-slate-400">{formatDate(event.date)}</span>
+                                        </div>
+                                        <p className="text-xs text-slate-500">
+                                            por <span className="font-medium">{event.data.user?.name}</span>
+                                        </p>
+
+                                        {/* Detalle de cambios en configuración */}
+                                        {event.type === 'config' && event.data.action === 'updated' && event.data.changes && (
+                                            <div className="mt-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-xs space-y-1">
+                                                {Object.entries(event.data.changes).map(([field, { from, to }]) => (
+                                                    <div key={field} className="flex items-center gap-2">
+                                                        <span className="font-medium text-slate-600 w-32 shrink-0">{FIELD_LABELS[field] ?? field}</span>
+                                                        <span className="text-slate-400 line-through">{from ?? '—'}</span>
+                                                        <svg className="h-3 w-3 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                                        </svg>
+                                                        <span className="text-slate-800 font-semibold">{to ?? '—'}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Snapshot en configuración inicial */}
+                                        {event.type === 'config' && event.data.action === 'created' && event.data.snapshot && (
+                                            <div className="mt-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-xs space-y-1">
+                                                {Object.entries(event.data.snapshot)
+                                                    .filter(([, v]) => v !== null && v !== '')
+                                                    .map(([field, value]) => (
+                                                        <div key={field} className="flex items-center gap-2">
+                                                            <span className="font-medium text-slate-600 w-32 shrink-0">{FIELD_LABELS[field] ?? field}</span>
+                                                            <span className="text-slate-800">{String(value)}</span>
+                                                        </div>
+                                                    ))}
+                                            </div>
+                                        )}
+
+                                        {/* Observaciones de verificación */}
+                                        {event.type === 'verified' && event.data.notes && (
+                                            <p className="mt-1 text-xs italic text-slate-500">"{event.data.notes}"</p>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+
+                            {/* Evento base: diseño añadido */}
+                            <div className="flex gap-4">
+                                <div className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100">
+                                    <svg className="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                </div>
+                                <div className="flex-1">
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-sm font-semibold text-slate-800">Diseño añadido al repositorio</p>
+                                        <span className="text-xs text-slate-400">{formatDate(design.created_at)}</span>
+                                    </div>
+                                    <p className="text-xs text-slate-500">por <span className="font-medium">{design.creator?.name}</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 // ── Modal configuración y encuadre ────────────────────────────────────────────
 function SettingsModal({ design, printer, setting, onClose }) {
     const isMimaki = printer.name.toLowerCase().includes('mimaki');
@@ -215,12 +370,16 @@ function VerificationModal({ design, printer, onClose }) {
 }
 
 // ── Tarjeta impresora ─────────────────────────────────────────────────────────
-function PrinterCard({ design, printer }) {
+function PrinterCard({ design, printer, settingLogs }) {
     const isMimaki = printer.name.toLowerCase().includes('mimaki');
     const setting = design.printer_settings?.find(s => s.printer_id === printer.id);
     const latestVerification = design.verifications?.find(v => v.printer_id === printer.id);
-    const [showSettings, setShowSettings]         = useState(false);
-    const [showVerification, setShowVerification] = useState(false);
+    const [showSettings, setShowSettings]           = useState(false);
+    const [showVerification, setShowVerification]   = useState(false);
+    const [showTraceability, setShowTraceability]   = useState(false);
+
+    const traceabilityCount = (settingLogs?.[printer.id]?.length ?? 0)
+        + (design.verifications?.filter(v => v.printer_id === printer.id).length ?? 0);
 
     const fields = [
         [isMimaki ? 'Escaneo (X)' : 'Offset X', setting?.offset_x != null ? `${setting.offset_x} mm` : null],
@@ -303,17 +462,40 @@ function PrinterCard({ design, printer }) {
                         </svg>
                         Registrar verificación
                     </button>
+                    <button
+                        onClick={() => setShowTraceability(true)}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm hover:bg-slate-50 transition-colors"
+                    >
+                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        Trazabilidad
+                        {traceabilityCount > 0 && (
+                            <span className="ml-0.5 rounded-full bg-slate-200 px-1.5 py-0.5 text-xs font-semibold text-slate-600">
+                                {traceabilityCount}
+                            </span>
+                        )}
+                    </button>
                 </div>
             </div>
 
             {showSettings && <SettingsModal design={design} printer={printer} setting={setting} onClose={() => setShowSettings(false)} />}
             {showVerification && <VerificationModal design={design} printer={printer} onClose={() => setShowVerification(false)} />}
+            {showTraceability && (
+                <TraceabilityModal
+                    design={design}
+                    printer={printer}
+                    settingLogs={settingLogs}
+                    verifications={design.verifications}
+                    onClose={() => setShowTraceability(false)}
+                />
+            )}
         </>
     );
 }
 
 // ── Página principal ──────────────────────────────────────────────────────────
-export default function Show({ design, printers }) {
+export default function Show({ design, printers, settingLogs }) {
     const { auth, flash } = usePage().props;
     const [toast, setToast] = useState(null);
 
@@ -421,7 +603,7 @@ export default function Show({ design, printers }) {
                     <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Datos por impresora</h2>
                     <div className="space-y-4">
                         {printers.map(printer => (
-                            <PrinterCard key={printer.id} design={design} printer={printer} />
+                            <PrinterCard key={printer.id} design={design} printer={printer} settingLogs={settingLogs} />
                         ))}
                     </div>
                 </div>
