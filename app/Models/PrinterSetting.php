@@ -1,0 +1,48 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class PrinterSetting extends Model
+{
+    protected $fillable = [
+        'design_id',
+        'printer_id',
+        'offset_x',
+        'offset_y',
+        'rotation',
+        'scale',
+        'copies',
+        'notes',
+        'ink_type',
+        'resolution',
+        'overprint',
+        'updated_by',
+    ];
+
+    protected $casts = [
+        'offset_x'  => 'float',
+        'offset_y'  => 'float',
+        'rotation'  => 'integer',
+        'scale'     => 'float',
+        'copies'    => 'integer',
+        'overprint' => 'integer',
+    ];
+
+    public function design(): BelongsTo
+    {
+        return $this->belongsTo(Design::class);
+    }
+
+    public function printer(): BelongsTo
+    {
+        return $this->belongsTo(Printer::class);
+    }
+
+    public function updatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+}
