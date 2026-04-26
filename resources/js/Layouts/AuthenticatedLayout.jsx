@@ -28,10 +28,8 @@ export default function AuthenticatedLayout({ header, children }) {
                     <div className="flex h-14 items-center justify-between">
                         {/* Brand + links */}
                         <div className="flex items-center gap-6">
-                            <Link href={route('designs.index')} className="flex items-center gap-2">
-                                <span className="text-base font-bold tracking-tight text-white">
-                                    Keyboard<span className="text-indigo-400">Designs</span>
-                                </span>
+                            <Link href={route('designs.index')} className="flex items-center">
+                                <img src="/Logo%20completo.png" alt="KeyLayout" className="h-7 w-auto object-contain" />
                             </Link>
                             <div className="hidden items-center gap-1 sm:flex">
                                 <NavItem href={route('designs.index')} active={route().current('designs.*')}>
