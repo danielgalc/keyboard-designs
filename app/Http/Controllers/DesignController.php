@@ -53,7 +53,7 @@ class DesignController extends Controller
         $validated = $request->validate([
             'brand_name'  => 'required|string|max:100',
             'model_name'  => 'required|string|max:100',
-            'language'    => 'required|string|max:20',
+            'language'    => 'nullable|string|max:20',
             'name'        => 'required|string|max:255',
             'description' => 'nullable|string|max:2000',
             'file'        => 'required|file|max:51200',
@@ -71,7 +71,7 @@ class DesignController extends Controller
         $design = Design::create([
             'name'           => $validated['name'],
             'laptop_model_id'=> $model->id,
-            'language'       => strtoupper(trim($validated['language'])),
+            'language'       => $validated['language'] ? strtoupper(trim($validated['language'])) : null,
             'description'    => $validated['description'] ?? null,
             'file_path'      => $path,
             'file_name'      => $file->getClientOriginalName(),
@@ -153,7 +153,7 @@ class DesignController extends Controller
         $validated = $request->validate([
             'brand_name'  => 'required|string|max:100',
             'model_name'  => 'required|string|max:100',
-            'language'    => 'required|string|max:20',
+            'language'    => 'nullable|string|max:20',
             'name'        => 'required|string|max:255',
             'description' => 'nullable|string|max:2000',
             'file'        => 'nullable|file|max:51200',
@@ -167,7 +167,7 @@ class DesignController extends Controller
 
         $design->name            = $validated['name'];
         $design->laptop_model_id = $model->id;
-        $design->language        = strtoupper(trim($validated['language']));
+        $design->language        = $validated['language'] ? strtoupper(trim($validated['language'])) : null;
         $design->description     = $validated['description'] ?? null;
 
         if ($request->hasFile('file')) {
