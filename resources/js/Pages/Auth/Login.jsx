@@ -14,13 +14,13 @@ export default function Login({ status, canResetPassword }) {
     };
 
     return (
-        <div className="flex min-h-screen flex-col items-center justify-center bg-slate-900 px-4 py-12">
+        <div className="flex min-h-screen flex-col items-center justify-center bg-slate-900 px-4">
             <Head title="Acceder" />
 
-            <div className="w-full max-w-sm">
+            <div className="w-full max-w-md">
                 {/* Logo */}
                 <div className="mb-6 flex flex-col items-center">
-                    <img src="/Logo%20completo.png" alt="KeyLayout" className="w-96 object-contain" />
+                    <img src="/Logo%20completo.png" alt="KeyLayout" className="w-full object-contain" />
                     <p className="mt-3 text-sm text-slate-400">Repositorio de diseños de teclado</p>
                 </div>
 
