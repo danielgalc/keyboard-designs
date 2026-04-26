@@ -57,6 +57,9 @@ function ModelRow({ model, brandId }) {
                 <>
                     <div className="flex items-center gap-3">
                         <span className="text-sm text-slate-700">{model.name}</span>
+                        <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-600">
+                            {{ laptop: 'Portátil', tower: 'Torre', sff: 'SFF', mini: 'Mini' }[model.device_type] ?? model.device_type}
+                        </span>
                         <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
                             {model.designs_count} diseño(s)
                         </span>
@@ -78,7 +81,7 @@ function BrandCard({ brand }) {
 
     const editBrandForm = useForm({ name: brand.name });
     const deleteBrandForm = useForm({});
-    const addModelForm = useForm({ name: '' });
+    const addModelForm = useForm({ name: '', device_type: 'laptop' });
 
     const saveBrand = (e) => {
         e.preventDefault();
@@ -153,7 +156,17 @@ function BrandCard({ brand }) {
 
                     {/* Formulario añadir modelo */}
                     {addingModel ? (
-                        <form onSubmit={saveModel} className="flex items-center gap-2 border-t border-slate-100 px-8 py-3 bg-indigo-50">
+                        <form onSubmit={saveModel} className="flex flex-wrap items-center gap-2 border-t border-slate-100 px-8 py-3 bg-indigo-50">
+                            <select
+                                value={addModelForm.data.device_type}
+                                onChange={e => addModelForm.setData('device_type', e.target.value)}
+                                className={inputClass + " max-w-[130px] cursor-pointer"}
+                            >
+                                <option value="laptop">Portátil</option>
+                                <option value="tower">Torre</option>
+                                <option value="sff">SFF</option>
+                                <option value="mini">Mini</option>
+                            </select>
                             <input
                                 type="text"
                                 value={addModelForm.data.name}

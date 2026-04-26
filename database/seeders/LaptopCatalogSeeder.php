@@ -12,36 +12,36 @@ class LaptopCatalogSeeder extends Seeder
     {
         $catalog = [
             'HP' => [
-                'EliteBook 840 G5',
-                'EliteBook 840 G6',
-                'EliteBook 840 G8',
-                'ProBook 450 G7',
-                'ProBook 450 G8',
+                ['device_type' => 'laptop', 'name' => 'EliteBook 840 G5'],
+                ['device_type' => 'laptop', 'name' => 'EliteBook 840 G6'],
+                ['device_type' => 'laptop', 'name' => 'EliteBook 840 G8'],
+                ['device_type' => 'laptop', 'name' => 'ProBook 450 G7'],
+                ['device_type' => 'laptop', 'name' => 'ProBook 450 G8'],
             ],
             'Dell' => [
-                'Latitude 5420',
-                'Latitude 5520',
-                'Latitude 7420',
-                'Inspiron 15 3511',
-                'Vostro 3520',
+                ['device_type' => 'laptop', 'name' => 'Latitude 5420'],
+                ['device_type' => 'laptop', 'name' => 'Latitude 5520'],
+                ['device_type' => 'laptop', 'name' => 'Latitude 7420'],
+                ['device_type' => 'laptop', 'name' => 'Inspiron 15 3511'],
+                ['device_type' => 'laptop', 'name' => 'Vostro 3520'],
             ],
             'Lenovo' => [
-                'ThinkPad E15 Gen 2',
-                'ThinkPad T14 Gen 2',
-                'ThinkPad L15 Gen 1',
-                'IdeaPad 5 15ITL05',
-                'ThinkPad X1 Carbon Gen 9',
+                ['device_type' => 'laptop', 'name' => 'ThinkPad E15 Gen 2'],
+                ['device_type' => 'laptop', 'name' => 'ThinkPad T14 Gen 2'],
+                ['device_type' => 'laptop', 'name' => 'ThinkPad L15 Gen 1'],
+                ['device_type' => 'laptop', 'name' => 'IdeaPad 5 15ITL05'],
+                ['device_type' => 'laptop', 'name' => 'ThinkPad X1 Carbon Gen 9'],
             ],
         ];
 
         foreach ($catalog as $brandName => $models) {
             $brand = LaptopBrand::firstOrCreate(['name' => $brandName]);
 
-            foreach ($models as $modelName) {
-                LaptopModel::firstOrCreate([
-                    'laptop_brand_id' => $brand->id,
-                    'name'            => $modelName,
-                ]);
+            foreach ($models as $model) {
+                LaptopModel::firstOrCreate(
+                    ['laptop_brand_id' => $brand->id, 'name' => $model['name']],
+                    ['device_type' => $model['device_type']]
+                );
             }
         }
     }
