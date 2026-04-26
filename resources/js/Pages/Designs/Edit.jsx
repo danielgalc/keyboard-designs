@@ -64,9 +64,9 @@ export default function Edit({ design, brands }) {
             <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
                 <form onSubmit={submit} encType="multipart/form-data" className="space-y-6">
 
-                    {/* Portátil */}
+                    {/* Dispositivo */}
                     <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                        <h2 className="mb-5 text-xs font-semibold uppercase tracking-wide text-slate-400">Portátil</h2>
+                        <h2 className="mb-5 text-xs font-semibold uppercase tracking-wide text-slate-400">Dispositivo</h2>
                         <div className="space-y-4">
                             <Field label="Marca" required error={errors.brand_name}>
                                 <Combobox
@@ -89,12 +89,13 @@ export default function Edit({ design, brands }) {
                                 />
                             </Field>
 
-                            <Field label="Idioma del layout" required error={errors.language} hint="Ej: PT, EN, FR, DE...">
+                            <Field label="Idioma del layout" error={errors.language} hint="Solo para teclados. Dejar vacío para frontales de torre u otros dispositivos.">
                                 <input
                                     type="text"
                                     value={data.language}
                                     onChange={e => setData('language', e.target.value.toUpperCase())}
                                     className={inputClass}
+                                    placeholder="PT (opcional)"
                                     maxLength={20}
                                 />
                             </Field>

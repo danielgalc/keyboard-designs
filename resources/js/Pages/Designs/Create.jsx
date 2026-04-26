@@ -66,9 +66,9 @@ export default function Create({ brands }) {
             <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
                 <form onSubmit={submit} encType="multipart/form-data" className="space-y-6">
 
-                    {/* Portátil */}
+                    {/* Dispositivo */}
                     <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                        <h2 className="mb-5 text-xs font-semibold uppercase tracking-wide text-slate-400">Portátil</h2>
+                        <h2 className="mb-5 text-xs font-semibold uppercase tracking-wide text-slate-400">Dispositivo</h2>
                         <div className="space-y-4">
                             <Field label="Marca" required error={errors.brand_name}>
                                 <Combobox
@@ -91,30 +91,30 @@ export default function Create({ brands }) {
                                 />
                             </Field>
 
-                            <Field label="Idioma del layout" required error={errors.language} hint="Ej: PT, EN, FR, DE...">
+                            <Field label="Idioma del layout" error={errors.language} hint="Solo para teclados. Ej: PT, EN, FR — dejar vacío para frontales de torre u otros dispositivos.">
                                 <input
                                     type="text"
                                     value={data.language}
                                     onChange={e => setData('language', e.target.value.toUpperCase())}
                                     className={inputClass}
-                                    placeholder="PT"
+                                    placeholder="PT (opcional)"
                                     maxLength={20}
                                 />
                             </Field>
                         </div>
                     </div>
 
-                    {/* Identificación */}
+                    {/* Diseño */}
                     <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
                         <h2 className="mb-5 text-xs font-semibold uppercase tracking-wide text-slate-400">Diseño</h2>
                         <div className="space-y-4">
-                            <Field label="Nombre del diseño" required error={errors.name} hint="Ej: Tecla fina, Tecla ancha, Retroiluminado...">
+                            <Field label="Nombre del diseño" required error={errors.name} hint="Ej: Tecla fina, Tecla ancha, Frontal estándar, Frontal SFF...">
                                 <input
                                     type="text"
                                     value={data.name}
                                     onChange={e => setData('name', e.target.value)}
                                     className={inputClass}
-                                    placeholder="Tecla fina"
+                                    placeholder="Nombre del diseño"
                                     autoFocus
                                 />
                             </Field>
@@ -175,7 +175,7 @@ export default function Create({ brands }) {
                         </Link>
                         <button
                             type="submit"
-                            disabled={processing || !data.file || !data.brand_name || !data.model_name || !data.language}
+                            disabled={processing || !data.file || !data.brand_name || !data.model_name || !data.name}
                             className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                             {processing ? (
