@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 function VerificationDot({ design, printer }) {
     const latest = design.verifications?.find(v => v.printer_id === printer.id);
@@ -112,6 +112,7 @@ export default function Index({ designs, printers, filters }) {
     const { flash } = usePage().props;
     const [search, setSearch] = useState(filters.search ?? '');
     const [toast, setToast] = useState(null);
+    const firstRender = useRef(true);
 
     useEffect(() => {
         if (flash?.success) {
@@ -122,8 +123,16 @@ export default function Index({ designs, printers, filters }) {
     }, [flash]);
 
     useEffect(() => {
+        if (firstRender.current) {
+            firstRender.current = false;
+            return;
+        }
         const t = setTimeout(() => {
-            router.get(route('designs.index'), { search }, { preserveState: true, replace: true });
+            router.get(
+                route('designs.index'),
+                search ? { search } : {},
+                { preserveState: true, replace: true }
+            );
         }, 350);
         return () => clearTimeout(t);
     }, [search]);
