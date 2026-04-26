@@ -185,6 +185,16 @@ class DesignController extends Controller
             ->with('success', 'Diseño actualizado correctamente.');
     }
 
+    public function preview(Design $design)
+    {
+        $path = Storage::disk('local')->path($design->file_path);
+
+        return response()->file($path, [
+            'Content-Type'        => $design->file_mime_type ?? 'application/octet-stream',
+            'Content-Disposition' => 'inline; filename="' . $design->file_name . '"',
+        ]);
+    }
+
     public function download(Design $design)
     {
         return Storage::disk('local')->download($design->file_path, $design->file_name);
