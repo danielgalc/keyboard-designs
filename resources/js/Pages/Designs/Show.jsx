@@ -541,6 +541,15 @@ export default function Show({ design, printers, settingLogs }) {
                             </svg>
                             Descargar
                         </a>
+                        <Link
+                            href={route('designs.edit', design.id)}
+                            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                        >
+                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            Editar
+                        </Link>
                         {auth.user.role === 'admin' && (
                             <button
                                 onClick={handleDelete}
@@ -608,34 +617,6 @@ export default function Show({ design, printers, settingLogs }) {
                     </div>
                 </div>
 
-                {/* Historial de verificaciones */}
-                {design.verifications?.length > 0 && (
-                    <div>
-                        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Historial de verificaciones</h2>
-                        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-                            <table className="min-w-full">
-                                <thead>
-                                    <tr className="border-b border-slate-100 bg-slate-50">
-                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Impresora</th>
-                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Verificado por</th>
-                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Fecha</th>
-                                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Observaciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100">
-                                    {design.verifications.map(v => (
-                                        <tr key={v.id} className="hover:bg-slate-50">
-                                            <td className="px-5 py-3 text-sm font-medium text-slate-700">{v.printer?.name}</td>
-                                            <td className="px-5 py-3 text-sm text-slate-600">{v.user?.name}</td>
-                                            <td className="px-5 py-3 text-sm text-slate-500">{formatDate(v.verified_at)}</td>
-                                            <td className="px-5 py-3 text-sm text-slate-500">{v.notes || <span className="text-slate-300">—</span>}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                )}
             </div>
         </AuthenticatedLayout>
     );

@@ -110,6 +110,57 @@ class DesignController extends Controller
         ]);
     }
 
+    public function edit(Design $design)
+    {
+        $design->load('laptopModel.brand');
+
+        $brands = LaptopBrand::with(['models' => fn ($q) => $q->orderBy('name')])
+            ->orderBy('name')
+            ->get();
+
+        return Inertia::render('Designs/Edit', [
+            'design' => $design,
+            'brands' => $brands,
+        ]);
+    }
+
+    public function update(Request $request, Design $design)
+    {
+        $validated = $request->validate([
+            'brand_name'  => 'required|string|max:100',
+            'model_name'  => 'required|string|max:100',
+            'language'    => 'required|string|max:20',
+            'name'        => 'required|string|max:255',
+            'description' => 'nullable|string|max:2000',
+            'file'        => 'nullable|file|max:51200',
+        ]);
+
+        $brand = LaptopBrand::firstOrCreate(['name' => trim($validated['brand_name'])]);
+        $model = LaptopModel::firstOrCreate([
+            'laptop_brand_id' => $brand->id,
+            'name'            => trim($validated['model_name']),
+        ]);
+
+        $design->name            = $validated['name'];
+        $design->laptop_model_id = $model->id;
+        $design->language        = strtoupper(trim($validated['language']));
+        $design->description     = $validated['description'] ?? null;
+
+        if ($request->hasFile('file')) {
+            Storage::disk('local')->delete($design->file_path);
+            $file = $request->file('file');
+            $design->file_path      = $file->store('designs', 'local');
+            $design->file_name      = $file->getClientOriginalName();
+            $design->file_mime_type = $file->getMimeType();
+            $design->file_size      = $file->getSize();
+        }
+
+        $design->save();
+
+        return redirect()->route('designs.show', $design)
+            ->with('success', 'Diseño actualizado correctamente.');
+    }
+
     public function download(Design $design)
     {
         return Storage::disk('local')->download($design->file_path, $design->file_name);
