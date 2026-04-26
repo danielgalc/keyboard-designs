@@ -79,6 +79,24 @@ function ModelSection({ modelName, designs, printers }) {
     );
 }
 
+function BrandLogo({ brandName }) {
+    const src = `/logos/${brandName}_Logo.png`;
+    const [error, setError] = useState(false);
+
+    if (error) {
+        return <span className="text-base font-bold text-slate-800">{brandName}</span>;
+    }
+
+    return (
+        <img
+            src={src}
+            alt={brandName}
+            onError={() => setError(true)}
+            className="h-6 w-auto object-contain"
+        />
+    );
+}
+
 function BrandSection({ brandName, models, printers }) {
     const [open, setOpen] = useState(true);
     const total = Object.values(models).reduce((sum, arr) => sum + arr.length, 0);
@@ -92,7 +110,7 @@ function BrandSection({ brandName, models, printers }) {
                 <svg className={`h-4 w-4 text-slate-500 transition-transform ${open ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-                <span className="text-base font-bold text-slate-800">{brandName}</span>
+                <BrandLogo brandName={brandName} />
                 <span className="rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-medium text-slate-600">
                     {Object.keys(models).length} modelos · {total} diseños
                 </span>
