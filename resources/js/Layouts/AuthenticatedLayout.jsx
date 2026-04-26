@@ -29,7 +29,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         {/* Brand + links */}
                         <div className="flex items-center gap-6">
                             <Link href={route('designs.index')} className="flex items-center">
-                                <img src="/Logo%20completo%201.png" alt="KeyLayout" className="h-9 w-auto object-contain" />
+                                <img src="/Group%202.png" alt="KeyLayout" className="h-9 w-auto object-contain" />
                             </Link>
                             <div className="hidden items-center gap-1 sm:flex">
                                 <NavItem href={route('designs.index')} active={route().current('designs.*')}>
