@@ -521,10 +521,59 @@ function PrinterCard({ design, printer, settingLogs }) {
     );
 }
 
+// ── Modal preview ─────────────────────────────────────────────────────────────
+function PreviewModal({ design, onClose }) {
+    const isPdf   = design.file_mime_type === 'application/pdf';
+    const isImage = design.file_mime_type?.startsWith('image/');
+    const previewUrl = route('designs.preview', design.id);
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 py-6" onClick={onClose}>
+            <div className="flex w-full max-w-5xl flex-col rounded-xl bg-white shadow-2xl overflow-hidden" style={{ maxHeight: '90vh' }} onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-between border-b border-slate-100 px-6 py-3 shrink-0">
+                    <p className="text-sm font-semibold text-slate-800 truncate">{design.file_name}</p>
+                    <div className="flex items-center gap-3 ml-4 shrink-0">
+                        <a href={route('designs.download', design.id)} className="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+                            Descargar
+                        </a>
+                        <button onClick={onClose} className="rounded-md p-1 text-slate-400 hover:bg-slate-100">
+                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div className="flex-1 overflow-hidden bg-slate-100">
+                    {isPdf && (
+                        <embed src={previewUrl} type="application/pdf" className="h-full w-full" style={{ minHeight: '70vh' }} />
+                    )}
+                    {isImage && (
+                        <div className="flex h-full items-center justify-center p-4">
+                            <img src={previewUrl} alt={design.file_name} className="max-h-full max-w-full object-contain rounded" />
+                        </div>
+                    )}
+                    {!isPdf && !isImage && (
+                        <div className="flex h-64 flex-col items-center justify-center gap-3 text-slate-400">
+                            <svg className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <p className="text-sm">Vista previa no disponible para este formato</p>
+                            <a href={route('designs.download', design.id)} className="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+                                Descargar archivo
+                            </a>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
 // ── Página principal ──────────────────────────────────────────────────────────
 export default function Show({ design, printers, settingLogs }) {
     const { auth, flash } = usePage().props;
     const [toast, setToast] = useState(null);
+    const [showPreview, setShowPreview] = useState(false);
 
     useEffect(() => {
         if (flash?.success) {
@@ -559,6 +608,16 @@ export default function Show({ design, printers, settingLogs }) {
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setShowPreview(true)}
+                            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                        >
+                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            Vista previa
+                        </button>
                         <a
                             href={route('designs.download', design.id)}
                             className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors"
@@ -646,5 +705,7 @@ export default function Show({ design, printers, settingLogs }) {
 
             </div>
         </AuthenticatedLayout>
+
+        {showPreview && <PreviewModal design={design} onClose={() => setShowPreview(false)} />}
     );
 }
