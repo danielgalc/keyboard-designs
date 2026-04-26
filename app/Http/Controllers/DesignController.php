@@ -52,18 +52,19 @@ class DesignController extends Controller
     {
         $validated = $request->validate([
             'brand_name'  => 'required|string|max:100',
+            'device_type' => 'required|in:laptop,tower,sff,mini',
             'model_name'  => 'required|string|max:100',
-            'language'    => 'required|string|max:20',
+            'language'    => 'nullable|string|max:20',
             'name'        => 'required|string|max:255',
             'description' => 'nullable|string|max:2000',
             'file'        => 'required|file|max:51200',
         ]);
 
         $brand = LaptopBrand::firstOrCreate(['name' => trim($validated['brand_name'])]);
-        $model = LaptopModel::firstOrCreate([
-            'laptop_brand_id' => $brand->id,
-            'name'            => trim($validated['model_name']),
-        ]);
+        $model = LaptopModel::firstOrCreate(
+            ['laptop_brand_id' => $brand->id, 'device_type' => $validated['device_type'], 'name' => trim($validated['model_name'])],
+            ['device_type' => $validated['device_type']]
+        );
 
         $file = $request->file('file');
         $path = $file->store('designs', 'local');
@@ -71,7 +72,7 @@ class DesignController extends Controller
         $design = Design::create([
             'name'           => $validated['name'],
             'laptop_model_id'=> $model->id,
-            'language'       => strtoupper(trim($validated['language'])),
+            'language'       => $validated['language'] ? strtoupper(trim($validated['language'])) : null,
             'description'    => $validated['description'] ?? null,
             'file_path'      => $path,
             'file_name'      => $file->getClientOriginalName(),
@@ -110,6 +111,30 @@ class DesignController extends Controller
         ]);
     }
 
+    public function traceability(Design $design, Printer $printer)
+    {
+        $design->load(['laptopModel.brand', 'creator']);
+
+        $settingLogs = \App\Models\PrinterSettingLog::with('user')
+            ->where('design_id', $design->id)
+            ->where('printer_id', $printer->id)
+            ->latest('logged_at')
+            ->paginate(20);
+
+        $verifications = \App\Models\Verification::with('user')
+            ->where('design_id', $design->id)
+            ->where('printer_id', $printer->id)
+            ->latest('verified_at')
+            ->get();
+
+        return Inertia::render('Designs/Traceability', [
+            'design'       => $design,
+            'printer'      => $printer,
+            'settingLogs'  => $settingLogs,
+            'verifications'=> $verifications,
+        ]);
+    }
+
     public function edit(Design $design)
     {
         $design->load('laptopModel.brand');
@@ -128,22 +153,23 @@ class DesignController extends Controller
     {
         $validated = $request->validate([
             'brand_name'  => 'required|string|max:100',
+            'device_type' => 'required|in:laptop,tower,sff,mini',
             'model_name'  => 'required|string|max:100',
-            'language'    => 'required|string|max:20',
+            'language'    => 'nullable|string|max:20',
             'name'        => 'required|string|max:255',
             'description' => 'nullable|string|max:2000',
             'file'        => 'nullable|file|max:51200',
         ]);
 
         $brand = LaptopBrand::firstOrCreate(['name' => trim($validated['brand_name'])]);
-        $model = LaptopModel::firstOrCreate([
-            'laptop_brand_id' => $brand->id,
-            'name'            => trim($validated['model_name']),
-        ]);
+        $model = LaptopModel::firstOrCreate(
+            ['laptop_brand_id' => $brand->id, 'device_type' => $validated['device_type'], 'name' => trim($validated['model_name'])],
+            ['device_type' => $validated['device_type']]
+        );
 
         $design->name            = $validated['name'];
         $design->laptop_model_id = $model->id;
-        $design->language        = strtoupper(trim($validated['language']));
+        $design->language        = $validated['language'] ? strtoupper(trim($validated['language'])) : null;
         $design->description     = $validated['description'] ?? null;
 
         if ($request->hasFile('file')) {
@@ -159,6 +185,16 @@ class DesignController extends Controller
 
         return redirect()->route('designs.show', $design)
             ->with('success', 'Diseño actualizado correctamente.');
+    }
+
+    public function preview(Design $design)
+    {
+        $path = Storage::disk('local')->path($design->file_path);
+
+        return response()->file($path, [
+            'Content-Type'        => $design->file_mime_type ?? 'application/octet-stream',
+            'Content-Disposition' => 'inline; filename="' . $design->file_name . '"',
+        ]);
     }
 
     public function download(Design $design)

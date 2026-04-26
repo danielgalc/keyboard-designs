@@ -31,16 +31,89 @@ const FIELD_LABELS = {
     overprint:  'Sobreimprimir',
 };
 
+const PREVIEW_LIMIT = 5;
+
+function TraceabilityEvent({ event }) {
+    return (
+        <div className="flex gap-4">
+            <div className={`relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+                event.type === 'verified' ? 'bg-emerald-100'
+                : event.data.action === 'created' ? 'bg-indigo-100'
+                : 'bg-amber-100'
+            }`}>
+                {event.type === 'verified' ? (
+                    <svg className="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                ) : event.data.action === 'created' ? (
+                    <svg className="h-4 w-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                ) : (
+                    <svg className="h-4 w-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                )}
+            </div>
+            <div className="flex-1 pb-1">
+                <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-slate-800">
+                        {event.type === 'verified' ? 'Verificación registrada'
+                        : event.data.action === 'created' ? 'Configuración inicial guardada'
+                        : 'Configuración actualizada'}
+                    </p>
+                    <span className="text-xs text-slate-400">{formatDate(event.date)}</span>
+                </div>
+                <p className="text-xs text-slate-500">por <span className="font-medium">{event.data.user?.name}</span></p>
+
+                {event.type === 'config' && event.data.action === 'updated' && event.data.changes && (
+                    <div className="mt-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-xs space-y-1">
+                        {Object.entries(event.data.changes).map(([field, { from, to }]) => (
+                            <div key={field} className="flex items-center gap-2">
+                                <span className="font-medium text-slate-600 w-32 shrink-0">{FIELD_LABELS[field] ?? field}</span>
+                                <span className="text-slate-400 line-through">{from ?? '—'}</span>
+                                <svg className="h-3 w-3 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                </svg>
+                                <span className="text-slate-800 font-semibold">{to ?? '—'}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {event.type === 'config' && event.data.action === 'created' && event.data.snapshot && (
+                    <div className="mt-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-xs space-y-1">
+                        {Object.entries(event.data.snapshot)
+                            .filter(([, v]) => v !== null && v !== '')
+                            .map(([field, value]) => (
+                                <div key={field} className="flex items-center gap-2">
+                                    <span className="font-medium text-slate-600 w-32 shrink-0">{FIELD_LABELS[field] ?? field}</span>
+                                    <span className="text-slate-800">{String(value)}</span>
+                                </div>
+                            ))}
+                    </div>
+                )}
+
+                {event.type === 'verified' && event.data.notes && (
+                    <p className="mt-1 text-xs italic text-slate-500">"{event.data.notes}"</p>
+                )}
+            </div>
+        </div>
+    );
+}
+
 // ── Modal trazabilidad ────────────────────────────────────────────────────────
 function TraceabilityModal({ design, printer, settingLogs, verifications, onClose }) {
-    const logs = settingLogs?.[printer.id] ?? [];
+    const logs   = settingLogs?.[printer.id] ?? [];
     const verifs = verifications?.filter(v => v.printer_id === printer.id) ?? [];
 
-    // Combinar y ordenar todos los eventos por fecha desc
-    const events = [
-        ...logs.map(l => ({ type: 'config', date: l.logged_at, data: l })),
+    const allEvents = [
+        ...logs.map(l => ({ type: 'config',   date: l.logged_at,   data: l })),
         ...verifs.map(v => ({ type: 'verified', date: v.verified_at, data: v })),
     ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    const preview   = allEvents.slice(0, PREVIEW_LIMIT);
+    const remaining = allEvents.length - PREVIEW_LIMIT;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={onClose}>
@@ -60,115 +133,69 @@ function TraceabilityModal({ design, printer, settingLogs, verifications, onClos
 
                 {/* Timeline */}
                 <div className="overflow-y-auto px-6 py-4">
-                    {/* Evento de creación del diseño (siempre primero al fondo) */}
-                    {events.length === 0 && (
+                    {allEvents.length === 0 && (
                         <p className="py-8 text-center text-sm text-slate-400">Sin actividad registrada para esta impresora.</p>
                     )}
 
                     <div className="relative">
-                        {/* Línea vertical */}
-                        {events.length > 0 && (
-                            <div className="absolute left-4 top-2 bottom-2 w-px bg-slate-200" />
-                        )}
-
+                        {allEvents.length > 0 && <div className="absolute left-4 top-2 bottom-2 w-px bg-slate-200" />}
                         <div className="space-y-5">
-                            {events.map((event, i) => (
-                                <div key={i} className="flex gap-4">
-                                    {/* Icono */}
-                                    <div className={`relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
-                                        event.type === 'verified'
-                                            ? 'bg-emerald-100'
-                                            : event.data.action === 'created'
-                                                ? 'bg-indigo-100'
-                                                : 'bg-amber-100'
-                                    }`}>
-                                        {event.type === 'verified' ? (
-                                            <svg className="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        ) : event.data.action === 'created' ? (
-                                            <svg className="h-4 w-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                            </svg>
-                                        ) : (
-                                            <svg className="h-4 w-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                            </svg>
-                                        )}
-                                    </div>
+                            {preview.map((event, i) => <TraceabilityEvent key={i} event={event} />)}
 
-                                    {/* Contenido */}
-                                    <div className="flex-1 pb-1">
+                            {/* Indicador de eventos anteriores + enlace */}
+                            {remaining > 0 && (
+                                <div className="flex gap-4 items-center">
+                                    <div className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100">
+                                        <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
+                                        </svg>
+                                    </div>
+                                    <Link
+                                        href={route('designs.traceability', [design.id, printer.id])}
+                                        className="text-sm font-medium text-indigo-600 hover:text-indigo-800"
+                                        onClick={onClose}
+                                    >
+                                        Ver {remaining} evento{remaining !== 1 ? 's' : ''} anterior{remaining !== 1 ? 'es' : ''} →
+                                    </Link>
+                                </div>
+                            )}
+
+                            {/* Evento base: diseño añadido (solo si caben todos los eventos) */}
+                            {remaining === 0 && (
+                                <div className="flex gap-4">
+                                    <div className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100">
+                                        <svg className="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                    </div>
+                                    <div className="flex-1">
                                         <div className="flex items-center justify-between">
-                                            <p className="text-sm font-semibold text-slate-800">
-                                                {event.type === 'verified'
-                                                    ? 'Verificación registrada'
-                                                    : event.data.action === 'created'
-                                                        ? 'Configuración inicial guardada'
-                                                        : 'Configuración actualizada'}
-                                            </p>
-                                            <span className="text-xs text-slate-400">{formatDate(event.date)}</span>
+                                            <p className="text-sm font-semibold text-slate-800">Diseño añadido al repositorio</p>
+                                            <span className="text-xs text-slate-400">{formatDate(design.created_at)}</span>
                                         </div>
-                                        <p className="text-xs text-slate-500">
-                                            por <span className="font-medium">{event.data.user?.name}</span>
-                                        </p>
-
-                                        {/* Detalle de cambios en configuración */}
-                                        {event.type === 'config' && event.data.action === 'updated' && event.data.changes && (
-                                            <div className="mt-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-xs space-y-1">
-                                                {Object.entries(event.data.changes).map(([field, { from, to }]) => (
-                                                    <div key={field} className="flex items-center gap-2">
-                                                        <span className="font-medium text-slate-600 w-32 shrink-0">{FIELD_LABELS[field] ?? field}</span>
-                                                        <span className="text-slate-400 line-through">{from ?? '—'}</span>
-                                                        <svg className="h-3 w-3 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                                                        </svg>
-                                                        <span className="text-slate-800 font-semibold">{to ?? '—'}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        {/* Snapshot en configuración inicial */}
-                                        {event.type === 'config' && event.data.action === 'created' && event.data.snapshot && (
-                                            <div className="mt-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-xs space-y-1">
-                                                {Object.entries(event.data.snapshot)
-                                                    .filter(([, v]) => v !== null && v !== '')
-                                                    .map(([field, value]) => (
-                                                        <div key={field} className="flex items-center gap-2">
-                                                            <span className="font-medium text-slate-600 w-32 shrink-0">{FIELD_LABELS[field] ?? field}</span>
-                                                            <span className="text-slate-800">{String(value)}</span>
-                                                        </div>
-                                                    ))}
-                                            </div>
-                                        )}
-
-                                        {/* Observaciones de verificación */}
-                                        {event.type === 'verified' && event.data.notes && (
-                                            <p className="mt-1 text-xs italic text-slate-500">"{event.data.notes}"</p>
-                                        )}
+                                        <p className="text-xs text-slate-500">por <span className="font-medium">{design.creator?.name}</span></p>
                                     </div>
                                 </div>
-                            ))}
-
-                            {/* Evento base: diseño añadido */}
-                            <div className="flex gap-4">
-                                <div className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100">
-                                    <svg className="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
-                                </div>
-                                <div className="flex-1">
-                                    <div className="flex items-center justify-between">
-                                        <p className="text-sm font-semibold text-slate-800">Diseño añadido al repositorio</p>
-                                        <span className="text-xs text-slate-400">{formatDate(design.created_at)}</span>
-                                    </div>
-                                    <p className="text-xs text-slate-500">por <span className="font-medium">{design.creator?.name}</span></p>
-                                </div>
-                            </div>
+                            )}
                         </div>
                     </div>
                 </div>
+
+                {/* Footer con enlace al historial completo */}
+                {allEvents.length > 0 && (
+                    <div className="border-t border-slate-100 px-6 py-3 shrink-0">
+                        <Link
+                            href={route('designs.traceability', [design.id, printer.id])}
+                            className="flex items-center justify-center gap-2 text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors"
+                            onClick={onClose}
+                        >
+                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                            Ver historial completo
+                        </Link>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -454,15 +481,6 @@ function PrinterCard({ design, printer, settingLogs }) {
                         Configuración y encuadre
                     </button>
                     <button
-                        onClick={() => setShowVerification(true)}
-                        className="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 shadow-sm hover:bg-emerald-100 transition-colors"
-                    >
-                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Registrar verificación
-                    </button>
-                    <button
                         onClick={() => setShowTraceability(true)}
                         className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm hover:bg-slate-50 transition-colors"
                     >
@@ -475,6 +493,15 @@ function PrinterCard({ design, printer, settingLogs }) {
                                 {traceabilityCount}
                             </span>
                         )}
+                    </button>
+                    <button
+                        onClick={() => setShowVerification(true)}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 shadow-sm hover:bg-emerald-100 transition-colors"
+                    >
+                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Registrar verificación
                     </button>
                 </div>
             </div>
@@ -494,10 +521,59 @@ function PrinterCard({ design, printer, settingLogs }) {
     );
 }
 
+// ── Modal preview ─────────────────────────────────────────────────────────────
+function PreviewModal({ design, onClose }) {
+    const isPdf   = design.file_mime_type === 'application/pdf';
+    const isImage = design.file_mime_type?.startsWith('image/');
+    const previewUrl = route('designs.preview', design.id);
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 py-6" onClick={onClose}>
+            <div className="flex w-full max-w-5xl flex-col rounded-xl bg-white shadow-2xl overflow-hidden" style={{ maxHeight: '90vh' }} onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-between border-b border-slate-100 px-6 py-3 shrink-0">
+                    <p className="text-sm font-semibold text-slate-800 truncate">{design.file_name}</p>
+                    <div className="flex items-center gap-3 ml-4 shrink-0">
+                        <a href={route('designs.download', design.id)} className="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+                            Descargar
+                        </a>
+                        <button onClick={onClose} className="rounded-md p-1 text-slate-400 hover:bg-slate-100">
+                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div className="flex-1 overflow-hidden bg-slate-100">
+                    {isPdf && (
+                        <embed src={previewUrl} type="application/pdf" className="h-full w-full" style={{ minHeight: '70vh' }} />
+                    )}
+                    {isImage && (
+                        <div className="flex h-full items-center justify-center p-4">
+                            <img src={previewUrl} alt={design.file_name} className="max-h-full max-w-full object-contain rounded" />
+                        </div>
+                    )}
+                    {!isPdf && !isImage && (
+                        <div className="flex h-64 flex-col items-center justify-center gap-3 text-slate-400">
+                            <svg className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <p className="text-sm">Vista previa no disponible para este formato</p>
+                            <a href={route('designs.download', design.id)} className="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+                                Descargar archivo
+                            </a>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
 // ── Página principal ──────────────────────────────────────────────────────────
 export default function Show({ design, printers, settingLogs }) {
     const { auth, flash } = usePage().props;
     const [toast, setToast] = useState(null);
+    const [showPreview, setShowPreview] = useState(false);
 
     useEffect(() => {
         if (flash?.success) {
@@ -514,6 +590,7 @@ export default function Show({ design, printers, settingLogs }) {
     };
 
     return (
+        <>
         <AuthenticatedLayout
             header={
                 <div className="flex items-center justify-between">
@@ -532,6 +609,16 @@ export default function Show({ design, printers, settingLogs }) {
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setShowPreview(true)}
+                            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                        >
+                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            Vista previa
+                        </button>
                         <a
                             href={route('designs.download', design.id)}
                             className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors"
@@ -543,7 +630,7 @@ export default function Show({ design, printers, settingLogs }) {
                         </a>
                         <Link
                             href={route('designs.edit', design.id)}
-                            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                            className="inline-flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700 hover:bg-amber-100 transition-colors"
                         >
                             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -619,5 +706,8 @@ export default function Show({ design, printers, settingLogs }) {
 
             </div>
         </AuthenticatedLayout>
+
+        {showPreview && <PreviewModal design={design} onClose={() => setShowPreview(false)} />}
+        </>
     );
 }

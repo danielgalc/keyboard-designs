@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\DesignController;
+use App\Http\Controllers\PrinterController;
 use App\Http\Controllers\PrinterSettingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
@@ -18,8 +19,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/designs/create',                             [DesignController::class, 'create'])->name('designs.create');
     Route::post('/designs',                                   [DesignController::class, 'store'])->name('designs.store');
     Route::get('/designs/{design}',                           [DesignController::class, 'show'])->name('designs.show');
-    Route::get('/designs/{design}/edit',          [DesignController::class, 'edit'])->name('designs.edit');
+    Route::get('/designs/{design}/edit',                              [DesignController::class, 'edit'])->name('designs.edit');
+    Route::get('/designs/{design}/traceability/{printer}',            [DesignController::class, 'traceability'])->name('designs.traceability');
     Route::patch('/designs/{design}',             [DesignController::class, 'update'])->name('designs.update');
+    Route::get('/designs/{design}/preview',                   [DesignController::class, 'preview'])->name('designs.preview');
     Route::get('/designs/{design}/download',                  [DesignController::class, 'download'])->name('designs.download');
     Route::delete('/designs/{design}',                        [DesignController::class, 'destroy'])->name('designs.destroy');
     Route::post('/designs/{design}/settings/{printer}',       [PrinterSettingController::class, 'upsert'])->name('designs.settings.upsert');
@@ -40,6 +43,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/brands/{brand}/models',        [CatalogController::class, 'storeModel'])->name('admin.models.store');
         Route::patch('/models/{model}',              [CatalogController::class, 'updateModel'])->name('admin.models.update');
         Route::delete('/models/{model}',             [CatalogController::class, 'destroyModel'])->name('admin.models.destroy');
+
+        // Impresoras
+        Route::get('/printers',           [PrinterController::class, 'index'])->name('admin.printers');
+        Route::post('/printers',          [PrinterController::class, 'store'])->name('admin.printers.store');
+        Route::patch('/printers/{printer}', [PrinterController::class, 'update'])->name('admin.printers.update');
+        Route::delete('/printers/{printer}', [PrinterController::class, 'destroy'])->name('admin.printers.destroy');
 
         // Usuarios
         Route::get('/users',              [UserController::class, 'index'])->name('admin.users');
