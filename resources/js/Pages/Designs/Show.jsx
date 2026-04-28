@@ -34,6 +34,12 @@ const FIELD_LABELS = {
 
 const PREVIEW_LIMIT = 5;
 
+function needsReverification(setting, latestVerification) {
+    if (!setting) return false;
+    if (!latestVerification) return false;
+    return new Date(setting.updated_at) > new Date(latestVerification.verified_at);
+}
+
 // ── Modal galería ─────────────────────────────────────────────────────────────
 function GalleryModal({ design, printer, onClose }) {
     const images = design.printer_images?.filter(i => i.printer_id === printer.id) ?? [];
@@ -548,16 +554,21 @@ function PrinterCard({ design, printer, settingLogs }) {
                         <h3 className="text-sm font-semibold text-slate-800">{printer.name}</h3>
                         {printer.model && <p className="text-xs text-slate-400">{printer.model}</p>}
                     </div>
-                    {latestVerification ? (
+                    {!latestVerification ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-600">
+                            <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                            Sin verificar
+                        </span>
+                    ) : needsReverification(setting, latestVerification) ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-700" title="La configuración fue modificada después de la última verificación">
+                            <span className="h-1.5 w-1.5 rounded-full bg-orange-500" />
+                            ⚠ Pendiente de re-verificar
+                        </span>
+                    ) : (
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">
                             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                             Verificado {new Date(latestVerification.verified_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
                             <span className="text-emerald-500">· {latestVerification.user?.name}</span>
-                        </span>
-                    ) : (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-600">
-                            <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-                            Sin verificar
                         </span>
                     )}
                 </div>

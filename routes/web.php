@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DesignController;
 use App\Http\Controllers\PrinterController;
 use App\Http\Controllers\PrinterImageController;
@@ -12,9 +13,11 @@ use App\Http\Controllers\VerificationController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', fn () => redirect()->route('designs.index'));
+Route::get('/', fn () => redirect()->route('dashboard'));
 
 Route::middleware('auth')->group(function () {
+
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Diseños
     Route::get('/designs',                                    [DesignController::class, 'index'])->name('designs.index');
