@@ -36,18 +36,20 @@ function DesignRow({ design, printers, onTagClick }) {
                 )}
                 <div className="min-w-0">
                     <p className="text-sm font-medium text-slate-800 truncate">{design.name}</p>
-                    <div className="flex flex-wrap items-center gap-1 mt-0.5">
-                        <p className="text-xs text-slate-400 truncate">{design.file_name}</p>
-                        {design.tags?.map(tag => (
-                            <button
-                                key={tag.id}
-                                onClick={() => onTagClick(tag.name)}
-                                className="inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-600 hover:bg-indigo-100 transition-colors"
-                            >
-                                {tag.name}
-                            </button>
-                        ))}
-                    </div>
+                    <p className="text-xs text-slate-400 truncate mt-0.5">{design.file_name}</p>
+                    {design.tags?.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1.5">
+                            {design.tags.map(tag => (
+                                <button
+                                    key={tag.id}
+                                    onClick={() => onTagClick(tag.name)}
+                                    className="inline-flex items-center rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-700 hover:bg-violet-200 transition-colors"
+                                >
+                                    {tag.name}
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
             <div className="flex items-center gap-4 shrink-0 ml-4">
