@@ -1,3 +1,4 @@
+import { tagColor } from '@/utils/tagColor';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -25,7 +26,7 @@ const DEVICE_TYPE_LABELS = {
     mini:   'Mini',
 };
 
-function DesignRow({ design, printers }) {
+function DesignRow({ design, printers, onTagClick }) {
     return (
         <div className="flex items-center justify-between py-2.5 pl-14 pr-5 hover:bg-slate-50 group border-b border-slate-100 last:border-0">
             <div className="flex items-center gap-4 min-w-0">
@@ -36,7 +37,23 @@ function DesignRow({ design, printers }) {
                 )}
                 <div className="min-w-0">
                     <p className="text-sm font-medium text-slate-800 truncate">{design.name}</p>
-                    <p className="text-xs text-slate-400 truncate">{design.file_name}</p>
+                    <p className="text-xs text-slate-400 truncate mt-0.5">{design.file_name}</p>
+                    {design.tags?.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1.5">
+                            {design.tags.map(tag => {
+                                const c = tagColor(tag.name);
+                                return (
+                                    <button
+                                        key={tag.id}
+                                        onClick={() => onTagClick(tag.name)}
+                                        className={`inline-flex items-center rounded-full ${c.bg} px-2 py-0.5 text-xs font-medium ${c.text} ${c.hover} transition-colors`}
+                                    >
+                                        {tag.name}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
             </div>
             <div className="flex items-center gap-4 shrink-0 ml-4">
@@ -60,7 +77,7 @@ function DesignRow({ design, printers }) {
     );
 }
 
-function ModelSection({ modelName, designs, printers }) {
+function ModelSection({ modelName, designs, printers, onTagClick }) {
     const [open, setOpen] = useState(true);
     return (
         <div className="border-b border-slate-100 last:border-0">
@@ -73,12 +90,12 @@ function ModelSection({ modelName, designs, printers }) {
                     {designs.length} {designs.length === 1 ? 'diseño' : 'diseños'}
                 </span>
             </button>
-            {open && designs.map(d => <DesignRow key={d.id} design={d} printers={printers} />)}
+            {open && designs.map(d => <DesignRow key={d.id} design={d} printers={printers} onTagClick={onTagClick} />)}
         </div>
     );
 }
 
-function DeviceTypeSection({ typeName, models, printers }) {
+function DeviceTypeSection({ typeName, models, printers, onTagClick }) {
     const [open, setOpen] = useState(true);
     const total = Object.values(models).reduce((sum, arr) => sum + arr.length, 0);
     return (
@@ -93,7 +110,7 @@ function DeviceTypeSection({ typeName, models, printers }) {
                 </span>
             </button>
             {open && Object.entries(models).map(([modelName, designs]) => (
-                <ModelSection key={modelName} modelName={modelName} designs={designs} printers={printers} />
+                <ModelSection key={modelName} modelName={modelName} designs={designs} printers={printers} onTagClick={onTagClick} />
             ))}
         </div>
     );
@@ -117,7 +134,7 @@ function BrandLogo({ brandName }) {
     );
 }
 
-function BrandSection({ brandName, deviceTypes, printers }) {
+function BrandSection({ brandName, deviceTypes, printers, onTagClick }) {
     const [open, setOpen] = useState(true);
     const total = Object.values(deviceTypes).reduce((sum, models) =>
         sum + Object.values(models).reduce((s, arr) => s + arr.length, 0), 0);
@@ -142,6 +159,7 @@ function BrandSection({ brandName, deviceTypes, printers }) {
                     typeName={DEVICE_TYPE_LABELS[typeKey] ?? typeKey}
                     models={models}
                     printers={printers}
+                    onTagClick={onTagClick}
                 />
             ))}
         </div>
@@ -153,6 +171,10 @@ export default function Index({ designs, printers, filters }) {
     const [search, setSearch] = useState(filters.search ?? '');
     const [toast, setToast] = useState(null);
     const firstRender = useRef(true);
+
+    const handleTagClick = (tagName) => {
+        setSearch(tagName);
+    };
 
     useEffect(() => {
         if (flash?.success) {
@@ -262,7 +284,7 @@ export default function Index({ designs, printers, filters }) {
                 ) : (
                     <div className="space-y-4">
                         {Object.entries(tree).sort(([a], [b]) => a.localeCompare(b)).map(([brandName, deviceTypes]) => (
-                            <BrandSection key={brandName} brandName={brandName} deviceTypes={deviceTypes} printers={printers} />
+                            <BrandSection key={brandName} brandName={brandName} deviceTypes={deviceTypes} printers={printers} onTagClick={handleTagClick} />
                         ))}
                     </div>
                 )}

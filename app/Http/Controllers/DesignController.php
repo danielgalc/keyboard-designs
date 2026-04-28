@@ -19,13 +19,15 @@ class DesignController extends Controller
         $designs = Design::with([
                 'laptopModel.brand',
                 'creator',
+                'tags',
                 'verifications' => fn ($q) => $q->with(['printer', 'user'])->latest('verified_at'),
             ])
             ->when($search, fn ($q) => $q->where(function ($q2) use ($search) {
                 $q2->where('name', 'ilike', "%{$search}%")
                    ->orWhere('language', 'ilike', "%{$search}%")
                    ->orWhereHas('laptopModel', fn ($q3) => $q3->where('name', 'ilike', "%{$search}%"))
-                   ->orWhereHas('laptopModel.brand', fn ($q3) => $q3->where('name', 'ilike', "%{$search}%"));
+                   ->orWhereHas('laptopModel.brand', fn ($q3) => $q3->where('name', 'ilike', "%{$search}%"))
+                   ->orWhereHas('tags', fn ($q3) => $q3->where('name', 'ilike', "%{$search}%"));
             }))
             ->orderBy('created_at')
             ->get();
@@ -90,8 +92,10 @@ class DesignController extends Controller
         $design->load([
             'laptopModel.brand',
             'creator',
+            'tags',
             'printerSettings.printer',
             'printerSettings.updatedBy',
+            'printerImages.uploader',
             'verifications' => fn ($q) => $q->with(['printer', 'user'])->latest('verified_at'),
         ]);
 
@@ -104,10 +108,13 @@ class DesignController extends Controller
             ->get()
             ->groupBy('printer_id');
 
+        $allTags = \App\Models\Tag::orderBy('name')->get(['id', 'name']);
+
         return Inertia::render('Designs/Show', [
             'design'      => $design,
             'printers'    => $printers,
             'settingLogs' => $settingLogs,
+            'allTags'     => $allTags,
         ]);
     }
 
