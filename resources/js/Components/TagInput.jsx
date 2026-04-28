@@ -1,3 +1,4 @@
+import { tagColor } from '@/utils/tagColor';
 import { useEffect, useRef, useState } from 'react';
 
 export default function TagInput({ tags = [], allTags = [], onChange }) {
@@ -51,20 +52,23 @@ export default function TagInput({ tags = [], allTags = [], onChange }) {
                 className="flex flex-wrap items-center gap-1.5 min-h-[42px] rounded-lg border border-slate-200 bg-white px-2 py-1.5 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 cursor-text"
                 onClick={() => inputRef.current?.focus()}
             >
-                {tags.map(tag => (
-                    <span key={tag} className="inline-flex items-center gap-1 rounded-full bg-indigo-100 pl-2.5 pr-1.5 py-0.5 text-xs font-medium text-indigo-700">
+                {tags.map(tag => {
+                    const c = tagColor(tag);
+                    return (
+                    <span key={tag} className={`inline-flex items-center gap-1 rounded-full ${c.bg} pl-2.5 pr-1.5 py-0.5 text-xs font-medium ${c.text}`}>
                         {tag}
                         <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); removeTag(tag); }}
-                            className="rounded-full hover:bg-indigo-200 p-0.5"
+                            className={`rounded-full ${c.hover} p-0.5`}
                         >
                             <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                     </span>
-                ))}
+                    );
+                })}
                 <input
                     ref={inputRef}
                     type="text"
@@ -79,15 +83,20 @@ export default function TagInput({ tags = [], allTags = [], onChange }) {
 
             {open && (input || suggestions.length > 0) && (
                 <ul className="absolute z-50 mt-1 max-h-48 w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg text-sm">
-                    {suggestions.map(t => (
-                        <li
-                            key={t.id}
-                            onMouseDown={() => addTag(t.name)}
-                            className="cursor-pointer px-3 py-1.5 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700"
-                        >
-                            {t.name}
-                        </li>
-                    ))}
+                    {suggestions.map(t => {
+                        const c = tagColor(t.name);
+                        return (
+                            <li
+                                key={t.id}
+                                onMouseDown={() => addTag(t.name)}
+                                className="flex items-center gap-2 cursor-pointer px-3 py-1.5 hover:bg-slate-50"
+                            >
+                                <span className={`inline-flex items-center rounded-full ${c.bg} px-2 py-0.5 text-xs font-medium ${c.text}`}>
+                                    {t.name}
+                                </span>
+                            </li>
+                        );
+                    })}
                     {input.trim() && !allTags.find(t => t.name === input.trim().toLowerCase()) && (
                         <li
                             onMouseDown={() => addTag(input)}

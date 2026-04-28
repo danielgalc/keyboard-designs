@@ -1,3 +1,4 @@
+import { tagColor } from '@/utils/tagColor';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -39,15 +40,18 @@ function DesignRow({ design, printers, onTagClick }) {
                     <p className="text-xs text-slate-400 truncate mt-0.5">{design.file_name}</p>
                     {design.tags?.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-1.5">
-                            {design.tags.map(tag => (
-                                <button
-                                    key={tag.id}
-                                    onClick={() => onTagClick(tag.name)}
-                                    className="inline-flex items-center rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-700 hover:bg-violet-200 transition-colors"
-                                >
-                                    {tag.name}
-                                </button>
-                            ))}
+                            {design.tags.map(tag => {
+                                const c = tagColor(tag.name);
+                                return (
+                                    <button
+                                        key={tag.id}
+                                        onClick={() => onTagClick(tag.name)}
+                                        className={`inline-flex items-center rounded-full ${c.bg} px-2 py-0.5 text-xs font-medium ${c.text} ${c.hover} transition-colors`}
+                                    >
+                                        {tag.name}
+                                    </button>
+                                );
+                            })}
                         </div>
                     )}
                 </div>
