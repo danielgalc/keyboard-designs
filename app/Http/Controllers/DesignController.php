@@ -20,6 +20,7 @@ class DesignController extends Controller
                 'laptopModel.brand',
                 'creator',
                 'tags',
+                'printerSettings',
                 'verifications' => fn ($q) => $q->with(['printer', 'user'])->latest('verified_at'),
             ])
             ->when($search, fn ($q) => $q->where(function ($q2) use ($search) {
