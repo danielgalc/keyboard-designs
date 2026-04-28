@@ -8,6 +8,25 @@ function formatDate(dateStr) {
     });
 }
 
+const PRINTER_LOGOS = {
+    mimaki: '/Mimaki-Logo.png',
+    nocai:  '/nocai-logo.png',
+};
+
+function printerLogo(name) {
+    const key = name?.toLowerCase();
+    return Object.entries(PRINTER_LOGOS).find(([k]) => key?.includes(k))?.[1] ?? null;
+}
+
+function PrinterLogoOrName({ name }) {
+    const logo = printerLogo(name);
+    const [error, setError] = useState(false);
+    if (logo && !error) {
+        return <img src={logo} alt={name} onError={() => setError(true)} className="h-6 w-auto object-contain" />;
+    }
+    return <span className="text-sm font-bold text-slate-700">{name}</span>;
+}
+
 function ProgressBar({ value, total }) {
     const pct = total > 0 ? Math.round((value / total) * 100) : 0;
     return (
@@ -62,7 +81,7 @@ function StaleDesignsModal({ designs, printers, onClose }) {
                                     <div className="flex items-center gap-2 ml-4 shrink-0">
                                         {stalePrinters.map(p => (
                                             <span key={p.id} className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-700">
-                                                ⚠ {p.name}
+                                                {p.name}
                                             </span>
                                         ))}
                                         <svg className="h-4 w-4 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -119,13 +138,14 @@ export default function Dashboard({ totalDesigns, printerStats, needsReverificat
                     {printerStats.map(p => (
                         <div key={p.id} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                             <div className="flex items-center justify-between">
-                                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{p.name}</p>
+                                <PrinterLogoOrName name={p.name} />
                                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50">
                                     <svg className="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </div>
                             </div>
+                            {p.model && <p className="mt-0.5 text-xs text-slate-400">{p.model}</p>}
                             <p className="mt-3 text-3xl font-bold text-slate-800">{p.verified}</p>
                             <p className="mt-1 text-sm text-slate-500">verificados · {p.configured} configurados</p>
                             <ProgressBar value={p.verified} total={totalDesigns} />
