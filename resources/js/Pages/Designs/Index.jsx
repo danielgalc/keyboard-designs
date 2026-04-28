@@ -4,17 +4,33 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 function VerificationDot({ design, printer }) {
-    const latest = design.verifications?.find(v => v.printer_id === printer.id);
-    return latest ? (
+    const latest  = design.verifications?.find(v => v.printer_id === printer.id);
+    const setting = design.printer_settings?.find(s => s.printer_id === printer.id);
+    const stale   = latest && setting && new Date(setting.updated_at) > new Date(latest.verified_at);
+
+    if (!latest) {
+        return (
+            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />—
+            </span>
+        );
+    }
+    if (stale) {
+        return (
+            <span title="Configuración modificada desde la última verificación"
+                className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
+                <span className="h-1.5 w-1.5 rounded-full bg-orange-500" />
+                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </span>
+        );
+    }
+    return (
         <span title={`Verificado el ${new Date(latest.verified_at).toLocaleDateString('es-ES')} por ${latest.user?.name}`}
             className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
             {new Date(latest.verified_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
-        </span>
-    ) : (
-        <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
-            —
         </span>
     );
 }

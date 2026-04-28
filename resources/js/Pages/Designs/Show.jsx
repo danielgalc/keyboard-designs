@@ -1,4 +1,5 @@
 import TagInput from '@/Components/TagInput';
+import { getPrinterLogo } from '@/utils/printerLogo';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
@@ -33,6 +34,12 @@ const FIELD_LABELS = {
 };
 
 const PREVIEW_LIMIT = 5;
+
+function needsReverification(setting, latestVerification) {
+    if (!setting) return false;
+    if (!latestVerification) return false;
+    return new Date(setting.updated_at) > new Date(latestVerification.verified_at);
+}
 
 // ── Modal galería ─────────────────────────────────────────────────────────────
 function GalleryModal({ design, printer, onClose }) {
@@ -512,6 +519,20 @@ function VerificationModal({ design, printer, onClose }) {
     );
 }
 
+function PrinterHeader({ name, model }) {
+    const logo = getPrinterLogo(name);
+    const [error, setError] = useState(false);
+    return (
+        <div>
+            {logo && !error
+                ? <img src={logo} alt={name} onError={() => setError(true)} className="h-5 w-auto object-contain" />
+                : <span className="text-sm font-semibold text-slate-800">{name}</span>
+            }
+            {model && <p className="mt-0.5 text-xs text-slate-400">{model}</p>}
+        </div>
+    );
+}
+
 // ── Tarjeta impresora ─────────────────────────────────────────────────────────
 function PrinterCard({ design, printer, settingLogs }) {
     const isMimaki = printer.name.toLowerCase().includes('mimaki');
@@ -545,19 +566,25 @@ function PrinterCard({ design, printer, settingLogs }) {
                 {/* Header de la tarjeta */}
                 <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-5 py-3.5">
                     <div>
-                        <h3 className="text-sm font-semibold text-slate-800">{printer.name}</h3>
-                        {printer.model && <p className="text-xs text-slate-400">{printer.model}</p>}
+                        <PrinterHeader name={printer.name} model={printer.model} />
                     </div>
-                    {latestVerification ? (
+                    {!latestVerification ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-600">
+                            <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                            Sin verificar
+                        </span>
+                    ) : needsReverification(setting, latestVerification) ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-700" title="La configuración fue modificada después de la última verificación">
+                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            Pendiente de re-verificar
+                        </span>
+                    ) : (
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">
                             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                             Verificado {new Date(latestVerification.verified_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
                             <span className="text-emerald-500">· {latestVerification.user?.name}</span>
-                        </span>
-                    ) : (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-600">
-                            <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-                            Sin verificar
                         </span>
                     )}
                 </div>

@@ -32,6 +32,9 @@ export default function AuthenticatedLayout({ header, children }) {
                                 <img src="/Group%202.png" alt="KEYOUT" className="h-9 w-auto object-contain" />
                             </Link>
                             <div className="hidden items-center gap-1 sm:flex">
+                                <NavItem href={route('dashboard')} active={route().current('dashboard')}>
+                                    Inicio
+                                </NavItem>
                                 <NavItem href={route('designs.index')} active={route().current('designs.*')}>
                                     Diseños
                                 </NavItem>
