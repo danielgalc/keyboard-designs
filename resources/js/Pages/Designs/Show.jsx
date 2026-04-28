@@ -1,3 +1,4 @@
+import TagInput from '@/Components/TagInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
@@ -32,6 +33,121 @@ const FIELD_LABELS = {
 };
 
 const PREVIEW_LIMIT = 5;
+
+// ── Modal galería ─────────────────────────────────────────────────────────────
+function GalleryModal({ design, printer, onClose }) {
+    const images = design.printer_images?.filter(i => i.printer_id === printer.id) ?? [];
+    const { data, setData, post, processing, reset } = useForm({ image: null });
+    const deleteForm = useForm({});
+    const [viewing, setViewing] = useState(null);
+
+    const submit = (e) => {
+        e.preventDefault();
+        post(route('designs.images.store', [design.id, printer.id]), {
+            forceFormData: true,
+            onSuccess: () => reset(),
+        });
+    };
+
+    const handleDelete = (image) => {
+        if (!confirm('¿Eliminar esta imagen?')) return;
+        deleteForm.delete(route('printer-images.destroy', image.id));
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={onClose}>
+            <div className="flex max-h-[88vh] w-full max-w-2xl flex-col rounded-xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
+                {/* Header */}
+                <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 shrink-0">
+                    <div>
+                        <h2 className="text-base font-semibold text-slate-900">Galería de encuadre</h2>
+                        <p className="text-sm text-slate-500">{printer.name}{printer.model && ` · ${printer.model}`}</p>
+                    </div>
+                    <button onClick={onClose} className="rounded-md p-1 text-slate-400 hover:bg-slate-100">
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                {/* Galería */}
+                <div className="flex-1 overflow-y-auto p-5">
+                    {images.length === 0 && (
+                        <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+                            <svg className="h-12 w-12 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <p className="text-sm">Sin imágenes todavía</p>
+                        </div>
+                    )}
+                    <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+                        {images.map(img => (
+                            <div key={img.id} className="group relative aspect-square overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+                                <img
+                                    src={route('printer-images.show', img.id)}
+                                    alt={img.file_name}
+                                    className="h-full w-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                    onClick={() => setViewing(img)}
+                                />
+                                <button
+                                    onClick={() => handleDelete(img)}
+                                    className="absolute top-1 right-1 rounded-full bg-red-500 p-0.5 text-white opacity-0 group-hover:opacity-100 transition-opacity shadow"
+                                >
+                                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                                <div className="absolute bottom-0 left-0 right-0 bg-black/40 px-1.5 py-0.5 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity truncate">
+                                    {img.uploader?.name}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Upload */}
+                <div className="border-t border-slate-100 px-6 py-4 shrink-0">
+                    <form onSubmit={submit} className="flex items-center gap-3">
+                        <label className={`flex flex-1 cursor-pointer items-center gap-2 rounded-lg border-2 border-dashed px-4 py-2.5 text-sm transition-colors ${data.image ? 'border-indigo-300 bg-indigo-50 text-indigo-700' : 'border-slate-200 text-slate-500 hover:border-indigo-300 hover:bg-slate-50'}`}>
+                            <input type="file" accept="image/*" className="sr-only" onChange={e => setData('image', e.target.files[0])} />
+                            <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            {data.image ? data.image.name : 'Selecciona una imagen...'}
+                        </label>
+                        <button
+                            type="submit"
+                            disabled={processing || !data.image}
+                            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50 transition-colors"
+                        >
+                            {processing ? 'Subiendo...' : 'Añadir'}
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            {/* Visor de imagen completa */}
+            {viewing && (
+                <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/80 px-4" onClick={() => setViewing(null)}>
+                    <img
+                        src={route('printer-images.show', viewing.id)}
+                        alt={viewing.file_name}
+                        className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain shadow-2xl"
+                        onClick={e => e.stopPropagation()}
+                    />
+                    <button
+                        onClick={() => setViewing(null)}
+                        className="absolute top-4 right-4 rounded-full bg-white/20 p-2 text-white hover:bg-white/30"
+                    >
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+}
 
 function TraceabilityEvent({ event }) {
     return (
@@ -404,7 +520,9 @@ function PrinterCard({ design, printer, settingLogs }) {
     const [showSettings, setShowSettings]           = useState(false);
     const [showVerification, setShowVerification]   = useState(false);
     const [showTraceability, setShowTraceability]   = useState(false);
+    const [showGallery, setShowGallery]             = useState(false);
 
+    const imageCount = design.printer_images?.filter(i => i.printer_id === printer.id).length ?? 0;
     const traceabilityCount = (settingLogs?.[printer.id]?.length ?? 0)
         + (design.verifications?.filter(v => v.printer_id === printer.id).length ?? 0);
 
@@ -495,6 +613,18 @@ function PrinterCard({ design, printer, settingLogs }) {
                         )}
                     </button>
                     <button
+                        onClick={() => setShowGallery(true)}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm hover:bg-slate-50 transition-colors"
+                    >
+                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Galería
+                        {imageCount > 0 && (
+                            <span className="ml-0.5 rounded-full bg-slate-200 px-1.5 py-0.5 text-xs font-semibold text-slate-600">{imageCount}</span>
+                        )}
+                    </button>
+                    <button
                         onClick={() => setShowVerification(true)}
                         className="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 shadow-sm hover:bg-emerald-100 transition-colors"
                     >
@@ -508,6 +638,7 @@ function PrinterCard({ design, printer, settingLogs }) {
 
             {showSettings && <SettingsModal design={design} printer={printer} setting={setting} onClose={() => setShowSettings(false)} />}
             {showVerification && <VerificationModal design={design} printer={printer} onClose={() => setShowVerification(false)} />}
+            {showGallery && <GalleryModal design={design} printer={printer} onClose={() => setShowGallery(false)} />}
             {showTraceability && (
                 <TraceabilityModal
                     design={design}
@@ -570,10 +701,21 @@ function PreviewModal({ design, onClose }) {
 }
 
 // ── Página principal ──────────────────────────────────────────────────────────
-export default function Show({ design, printers, settingLogs }) {
+export default function Show({ design, printers, settingLogs, allTags }) {
     const { auth, flash } = usePage().props;
     const [toast, setToast] = useState(null);
     const [showPreview, setShowPreview] = useState(false);
+    const [currentTags, setCurrentTags] = useState(design.tags?.map(t => t.name) ?? []);
+    const [tagsSaving, setTagsSaving] = useState(false);
+
+    const saveTags = (tags) => {
+        setCurrentTags(tags);
+        setTagsSaving(true);
+        router.post(route('designs.tags.sync', design.id), { tags }, {
+            preserveScroll: true,
+            onFinish: () => setTagsSaving(false),
+        });
+    };
 
     useEffect(() => {
         if (flash?.success) {
@@ -692,6 +834,21 @@ export default function Show({ design, printers, settingLogs }) {
                             </div>
                         )}
                     </dl>
+                </div>
+
+                {/* Etiquetas */}
+                <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+                    <div className="border-b border-slate-100 px-6 py-3 flex items-center justify-between">
+                        <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Etiquetas</h2>
+                        {tagsSaving && <span className="text-xs text-slate-400">Guardando...</span>}
+                    </div>
+                    <div className="px-6 py-4">
+                        <TagInput
+                            tags={currentTags}
+                            allTags={allTags}
+                            onChange={saveTags}
+                        />
+                    </div>
                 </div>
 
                 {/* Impresoras */}
