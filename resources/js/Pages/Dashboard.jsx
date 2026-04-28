@@ -1,3 +1,4 @@
+import { getPrinterLogo } from '@/utils/printerLogo';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
@@ -8,18 +9,8 @@ function formatDate(dateStr) {
     });
 }
 
-const PRINTER_LOGOS = {
-    mimaki: '/Mimaki-Logo.png',
-    nocai:  '/nocai-logo.png',
-};
-
-function printerLogo(name) {
-    const key = name?.toLowerCase();
-    return Object.entries(PRINTER_LOGOS).find(([k]) => key?.includes(k))?.[1] ?? null;
-}
-
 function PrinterLogoOrName({ name }) {
-    const logo = printerLogo(name);
+    const logo = getPrinterLogo(name);
     const [error, setError] = useState(false);
     if (logo && !error) {
         return <img src={logo} alt={name} onError={() => setError(true)} className="h-6 w-auto object-contain" />;
