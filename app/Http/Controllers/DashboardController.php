@@ -52,7 +52,7 @@ class DashboardController extends Controller
             ->get(['id', 'name', 'language', 'laptop_model_id', 'created_at']);
 
         // Últimas 8 verificaciones
-        $recentVerifications = Verification::with(['design', 'printer', 'user'])
+        $recentVerifications = Verification::with(['design.laptopModel.brand', 'printer', 'user'])
             ->latest('verified_at')
             ->limit(8)
             ->get();

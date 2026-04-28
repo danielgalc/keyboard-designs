@@ -83,8 +83,10 @@ export default function Dashboard({ totalDesigns, printerStats, needsReverificat
                                                 <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-xs font-bold text-indigo-600 shrink-0">{d.language}</span>
                                             )}
                                             <div className="min-w-0">
-                                                <p className="text-sm font-medium text-slate-800 truncate">{d.name}</p>
-                                                <p className="text-xs text-slate-400">{d.laptop_model?.brand?.name}</p>
+                                                <p className="text-sm font-medium text-slate-800 truncate">
+                                                    {[d.laptop_model?.brand?.name, d.laptop_model?.name].filter(Boolean).join(' · ')}
+                                                </p>
+                                                <p className="text-xs text-slate-500 truncate">{d.name}</p>
                                             </div>
                                         </div>
                                         <span className="text-xs text-slate-400 shrink-0 ml-3">{formatDate(d.created_at)}</span>
@@ -111,9 +113,16 @@ export default function Dashboard({ totalDesigns, printerStats, needsReverificat
                                                 {v.user?.name?.charAt(0).toUpperCase()}
                                             </span>
                                             <div className="min-w-0">
-                                                <p className="text-sm font-medium text-slate-800 truncate">{v.design?.name}</p>
-                                                <p className="text-xs text-slate-400">
-                                                    {v.user?.name} · {v.printer?.name}
+                                                <p className="text-sm font-medium text-slate-800 truncate">
+                                                    {[v.design?.laptop_model?.brand?.name, v.design?.laptop_model?.name].filter(Boolean).join(' · ')}
+                                                </p>
+                                                <p className="text-xs text-slate-500 truncate">
+                                                    {v.design?.name}
+                                                    {v.design?.language && <span className="ml-1 font-semibold text-indigo-500">{v.design.language}</span>}
+                                                    <span className="mx-1 text-slate-300">·</span>
+                                                    {v.printer?.name}
+                                                    <span className="mx-1 text-slate-300">·</span>
+                                                    {v.user?.name}
                                                 </p>
                                             </div>
                                         </div>
