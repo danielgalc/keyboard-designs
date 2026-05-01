@@ -225,7 +225,7 @@ export default function Catalog({ brands }) {
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-lg font-semibold text-slate-900">Catálogo</h1>
-                        <p className="text-sm text-slate-500">Gestiona las marcas y modelos disponibles</p>
+                        <p className="text-sm text-slate-500">Gestiona las marcas y modelos</p>
                     </div>
                     <button
                         onClick={() => setAddingBrand(true)}

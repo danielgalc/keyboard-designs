@@ -117,21 +117,24 @@ export default function Dashboard({ totalDesigns, printerStats, needsReverificat
 
                 {/* Stats — panel unificado */}
                 <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                    <div className="grid divide-x divide-slate-100" style={{ gridTemplateColumns: `180px repeat(${printerStats.length}, 1fr)` }}>
+
+                    {/* Móvil: apilado vertical / Desktop: columnas en grid */}
+                    <div className="flex flex-col divide-y divide-slate-100 lg:divide-y-0 lg:divide-x lg:grid"
+                        style={{ gridTemplateColumns: `180px repeat(${printerStats.length}, 1fr)` }}>
 
                         {/* Total */}
                         <div className="flex flex-col justify-between p-5">
                             <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Repositorio</p>
-                            <div className="mt-6">
-                                <span className="text-4xl font-bold tracking-tight text-slate-800">{totalDesigns}</span>
+                            <div className="mt-3 lg:mt-6">
+                                <span className="text-3xl font-bold tracking-tight text-slate-800 lg:text-4xl">{totalDesigns}</span>
                                 <p className="mt-1 text-sm text-slate-500">diseños</p>
                             </div>
-                            <Link href={route('designs.index')} className="mt-4 text-xs font-medium text-indigo-600 hover:text-indigo-800">
+                            <Link href={route('designs.index')} className="mt-3 lg:mt-4 text-xs font-medium text-indigo-600 hover:text-indigo-800">
                                 Ver repositorio →
                             </Link>
                         </div>
 
-                        {/* Una columna por impresora */}
+                        {/* Una fila/columna por impresora */}
                         {printerStats.map(p => {
                             const pct = totalDesigns > 0 ? Math.round((p.verified / totalDesigns) * 100) : 0;
                             const allVerified = p.verified === totalDesigns && totalDesigns > 0;
@@ -146,13 +149,10 @@ export default function Dashboard({ totalDesigns, printerStats, needsReverificat
                                             {pct}%
                                         </span>
                                     </div>
-
                                     <div>
                                         <div className="h-1.5 w-full rounded-full bg-slate-100">
-                                            <div
-                                                className={`h-1.5 rounded-full transition-all ${allVerified ? 'bg-emerald-500' : 'bg-indigo-400'}`}
-                                                style={{ width: `${pct}%` }}
-                                            />
+                                            <div className={`h-1.5 rounded-full transition-all ${allVerified ? 'bg-emerald-500' : 'bg-indigo-400'}`}
+                                                style={{ width: `${pct}%` }} />
                                         </div>
                                         <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
                                             <span>{p.verified} verificados</span>
@@ -164,21 +164,20 @@ export default function Dashboard({ totalDesigns, printerStats, needsReverificat
                         })}
                     </div>
 
-                    {/* Franja de alerta — inline, no card */}
+                    {/* Franja de alerta */}
                     {needsReverification > 0 && (
-                        <div className="border-t border-orange-100 bg-orange-50 px-5 py-3 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <svg className="h-4 w-4 text-orange-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div className="border-t border-orange-100 bg-orange-50 px-5 py-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex items-start gap-2 sm:items-center">
+                                <svg className="h-4 w-4 text-orange-500 shrink-0 mt-0.5 sm:mt-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                 </svg>
                                 <span className="text-sm font-medium text-orange-800">
                                     {needsReverification} {needsReverification === 1 ? 'diseño pendiente' : 'diseños pendientes'} de re-verificar
                                 </span>
-                                <span className="text-xs text-orange-500">Configuración modificada tras la última verificación</span>
                             </div>
                             <button
                                 onClick={() => setShowStale(true)}
-                                className="shrink-0 text-xs font-semibold text-orange-700 hover:text-orange-900 underline underline-offset-2"
+                                className="shrink-0 text-xs font-semibold text-orange-700 hover:text-orange-900 underline underline-offset-2 text-left sm:text-right"
                             >
                                 Ver listado
                             </button>

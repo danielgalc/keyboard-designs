@@ -435,27 +435,34 @@ export default function Index({ designs, printers, filters }) {
 
             <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
 
-                {/* Buscador + toggle filtros móvil */}
-                <div className="mb-5 flex gap-3">
-                    <div className="relative flex-1 max-w-lg">
+                {/* Buscador */}
+                <div className="mb-3">
+                    <div className="relative">
                         <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
                         </svg>
                         <input type="text" value={search} onChange={e => setSearch(e.target.value)}
                             placeholder="Buscar... separa palabras para combinar: HP PT, Dell EN..."
-                            className="block w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-4 text-sm shadow-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                            className="block w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-4 text-sm shadow-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 lg:max-w-lg" />
                     </div>
-                    {/* Botón filtros en móvil */}
+                </div>
+
+                {/* Botón filtros — solo móvil */}
+                <div className="mb-4 lg:hidden">
                     <button onClick={() => setShowFilters(o => !o)}
-                        className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors lg:hidden ${
-                            activeFiltersCount > 0 ? 'border-indigo-200 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                        className={`inline-flex w-full items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-medium transition-colors ${
+                            showFilters
+                                ? 'border-indigo-300 bg-indigo-50 text-indigo-700'
+                                : activeFiltersCount > 0
+                                    ? 'border-indigo-200 bg-indigo-50 text-indigo-700'
+                                    : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
                         }`}>
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
                         </svg>
-                        Filtrar
-                        {activeFiltersCount > 0 && (
-                            <span className="rounded-full bg-indigo-600 px-1.5 py-0.5 text-xs text-white">{activeFiltersCount}</span>
+                        {showFilters ? 'Ocultar filtros' : 'Mostrar filtros'}
+                        {activeFiltersCount > 0 && !showFilters && (
+                            <span className="rounded-full bg-indigo-600 px-1.5 py-0.5 text-xs text-white">{activeFiltersCount} activos</span>
                         )}
                     </button>
                 </div>
@@ -472,10 +479,10 @@ export default function Index({ designs, printers, filters }) {
                 )}
 
                 {/* Layout: sidebar + árbol */}
-                <div className="flex gap-6 items-start">
+                <div className="flex flex-col gap-4 lg:flex-row lg:gap-6 lg:items-start">
 
                     {/* Panel de filtros */}
-                    <aside className={`w-48 shrink-0 space-y-5 ${showFilters ? 'block' : 'hidden'} lg:block`}>
+                    <aside className={`w-full lg:w-48 lg:shrink-0 space-y-5 ${showFilters ? 'block' : 'hidden'} lg:block`}>
                         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-5">
 
                             {activeFiltersCount > 0 && (

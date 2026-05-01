@@ -63,45 +63,37 @@ export default function Tags({ tags }) {
             <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 lg:px-8 space-y-4">
                 <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
 
-                    {/* Tabla de etiquetas */}
+                    {/* Lista de etiquetas */}
                     {tags.length > 0 && (
-                        <table className="min-w-full">
-                            <thead>
-                                <tr className="border-b border-slate-100 bg-slate-50">
-                                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Etiqueta</th>
-                                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Usos</th>
-                                    <th className="px-5 py-3" />
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                                {tags.map(tag => {
-                                    const c = tagColor(tag.name);
-                                    return (
-                                        <tr key={tag.id} className="hover:bg-slate-50 transition-colors">
-                                            <td className="px-5 py-3.5">
-                                                {editingTag?.id === tag.id ? (
-                                                    <EditTagForm tag={tag} onDone={() => setEditingTag(null)} />
-                                                ) : (
-                                                    <span className={`inline-flex items-center rounded-full ${c.bg} px-3 py-1 text-sm font-medium ${c.text}`}>
+                        <ul className="divide-y divide-slate-100">
+                            {tags.map(tag => {
+                                const c = tagColor(tag.name);
+                                return (
+                                    <li key={tag.id} className="px-5 py-3.5 hover:bg-slate-50 transition-colors">
+                                        {editingTag?.id === tag.id ? (
+                                            <EditTagForm tag={tag} onDone={() => setEditingTag(null)} />
+                                        ) : (
+                                            <div className="flex flex-wrap items-center gap-3">
+                                                {/* Etiqueta + usos */}
+                                                <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                                                    <span className={`inline-flex shrink-0 items-center rounded-full ${c.bg} px-3 py-1 text-sm font-medium ${c.text}`}>
                                                         {tag.name}
                                                     </span>
-                                                )}
-                                            </td>
-                                            <td className="px-5 py-3.5">
-                                                {tag.designs_count > 0 ? (
-                                                    <span className="text-sm text-slate-600">
-                                                        {tag.designs_count} diseño{tag.designs_count !== 1 ? 's' : ''}
-                                                    </span>
-                                                ) : (
-                                                    <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-400">
-                                                        Sin uso
-                                                    </span>
-                                                )}
-                                            </td>
-                                            <td className="px-5 py-3.5">
+                                                    {tag.designs_count > 0 ? (
+                                                        <span className="hidden sm:inline text-sm text-slate-500 shrink-0">
+                                                            {tag.designs_count} diseño{tag.designs_count !== 1 ? 's' : ''}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="hidden sm:inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-400 shrink-0">
+                                                            Sin uso
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                {/* Acciones */}
                                                 {editingTag?.id !== tag.id && (
                                                     confirmingDelete?.id === tag.id ? (
-                                                        <div className="flex items-center justify-end gap-2">
+                                                        <div className="flex items-center gap-2 flex-wrap">
                                                             <span className="text-xs text-slate-500">
                                                                 {tag.designs_count > 0 ? `Se quitará de ${tag.designs_count} diseño(s)` : '¿Confirmar?'}
                                                             </span>
@@ -115,7 +107,7 @@ export default function Tags({ tags }) {
                                                             </button>
                                                         </div>
                                                     ) : (
-                                                        <div className="flex items-center justify-end gap-2">
+                                                        <div className="flex items-center gap-2 shrink-0">
                                                             <button onClick={() => { setEditingTag(tag); setConfirmingDelete(null); }}
                                                                 className="inline-flex min-h-[36px] items-center rounded-md border border-slate-200 bg-white px-3 text-sm font-medium text-indigo-600 hover:bg-slate-50 transition-colors">
                                                                 Renombrar
@@ -127,12 +119,12 @@ export default function Tags({ tags }) {
                                                         </div>
                                                     )
                                                 )}
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
+                                            </div>
+                                        )}
+                                    </li>
+                                );
+                            })}
+                        </ul>
                     )}
 
                     {/* Formulario nueva etiqueta */}

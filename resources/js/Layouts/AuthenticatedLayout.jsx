@@ -110,10 +110,40 @@ export default function AuthenticatedLayout({ header, children }) {
 
                 {/* Mobile dropdown */}
                 {menuOpen && (
-                    <div className="border-t border-slate-700 px-4 pb-3 pt-2 sm:hidden">
-                        <Link href={route('designs.index')} className="block rounded-md px-3 py-2 text-sm text-slate-300 hover:bg-white/5">Diseños</Link>
-                        <Link href={route('profile.edit')} className="block rounded-md px-3 py-2 text-sm text-slate-300 hover:bg-white/5">Mi perfil</Link>
-                        <Link href={route('logout')} method="post" as="button" className="block w-full rounded-md px-3 py-2 text-left text-sm text-slate-300 hover:bg-white/5">Cerrar sesión</Link>
+                    <div className="border-t border-slate-700 px-4 pb-4 pt-2 sm:hidden space-y-0.5">
+                        {/* Usuario */}
+                        <div className="flex items-center gap-3 px-3 py-3 mb-1 border-b border-slate-700">
+                            <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-500 text-sm font-semibold text-white">
+                                {auth.user.name.charAt(0).toUpperCase()}
+                            </span>
+                            <div className="min-w-0">
+                                <p className="text-sm font-medium text-white truncate">{auth.user.name}</p>
+                                <p className="text-xs text-slate-400 truncate">{auth.user.email}</p>
+                            </div>
+                            <span className={`ml-auto shrink-0 rounded px-1.5 py-0.5 text-xs font-medium ${auth.user.role === 'admin' ? 'bg-indigo-500/20 text-indigo-300' : 'bg-slate-600 text-slate-300'}`}>
+                                {auth.user.role}
+                            </span>
+                        </div>
+
+                        {/* Navegación principal */}
+                        <Link href={route('dashboard')} className="block rounded-md px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white">Inicio</Link>
+                        <Link href={route('designs.index')} className="block rounded-md px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white">Diseños</Link>
+
+                        {/* Admin */}
+                        {auth.user.role === 'admin' && (
+                            <>
+                                <p className="px-3 pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Administración</p>
+                                <Link href={route('admin.catalog')} className="block rounded-md px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white">Catálogo</Link>
+                                <Link href={route('admin.printers')} className="block rounded-md px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white">Impresoras</Link>
+                                <Link href={route('admin.tags')} className="block rounded-md px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white">Etiquetas</Link>
+                                <Link href={route('admin.users')} className="block rounded-md px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white">Usuarios</Link>
+                            </>
+                        )}
+
+                        {/* Cuenta */}
+                        <p className="px-3 pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Cuenta</p>
+                        <Link href={route('profile.edit')} className="block rounded-md px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white">Mi perfil</Link>
+                        <Link href={route('logout')} method="post" as="button" className="block w-full rounded-md px-3 py-2.5 text-left text-sm text-slate-300 hover:bg-white/5 hover:text-white">Cerrar sesión</Link>
                     </div>
                 )}
             </nav>

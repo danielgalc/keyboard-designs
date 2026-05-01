@@ -245,7 +245,7 @@ export default function Users({ users }) {
                                     <td className="px-5 py-3.5">
                                         <RoleBadge role={user.role} />
                                     </td>
-                                    <td className="px-5 py-3.5 text-sm text-slate-500">
+                                    <td className="px-5 py-3.5 text-sm text-slate-500 whitespace-nowrap">
                                         {formatDate(user.created_at)}
                                     </td>
                                     <td className="px-5 py-3.5">
