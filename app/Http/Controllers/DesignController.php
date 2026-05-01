@@ -23,13 +23,18 @@ class DesignController extends Controller
                 'printerSettings',
                 'verifications' => fn ($q) => $q->with(['printer', 'user'])->latest('verified_at'),
             ])
-            ->when($search, fn ($q) => $q->where(function ($q2) use ($search) {
-                $q2->where('name', 'ilike', "%{$search}%")
-                   ->orWhere('language', 'ilike', "%{$search}%")
-                   ->orWhereHas('laptopModel', fn ($q3) => $q3->where('name', 'ilike', "%{$search}%"))
-                   ->orWhereHas('laptopModel.brand', fn ($q3) => $q3->where('name', 'ilike', "%{$search}%"))
-                   ->orWhereHas('tags', fn ($q3) => $q3->where('name', 'ilike', "%{$search}%"));
-            }))
+            ->when($search, function ($q) use ($search) {
+                $terms = array_values(array_filter(array_map('trim', explode(' ', $search))));
+                foreach ($terms as $term) {
+                    $q->where(function ($q2) use ($term) {
+                        $q2->where('name', 'ilike', "%{$term}%")
+                           ->orWhere('language', 'ilike', "%{$term}%")
+                           ->orWhereHas('laptopModel', fn ($q3) => $q3->where('name', 'ilike', "%{$term}%"))
+                           ->orWhereHas('laptopModel.brand', fn ($q3) => $q3->where('name', 'ilike', "%{$term}%"))
+                           ->orWhereHas('tags', fn ($q3) => $q3->where('name', 'ilike', "%{$term}%"));
+                    });
+                }
+            })
             ->orderBy('created_at')
             ->get();
 

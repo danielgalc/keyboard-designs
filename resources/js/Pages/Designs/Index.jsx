@@ -268,7 +268,7 @@ export default function Index({ designs, printers, filters }) {
             <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                 {/* Buscador */}
                 <div className="mb-5">
-                    <div className="relative max-w-sm">
+                    <div className="relative max-w-lg">
                         <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
                         </svg>
@@ -276,10 +276,26 @@ export default function Index({ designs, printers, filters }) {
                             type="text"
                             value={search}
                             onChange={e => setSearch(e.target.value)}
-                            placeholder="Buscar marca, modelo, idioma..."
+                            placeholder="Buscar... separa palabras para combinar filtros: HP PT, Dell EN..."
                             className="block w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-4 text-sm shadow-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         />
                     </div>
+                    {search.trim().split(/\s+/).filter(Boolean).length > 1 && (
+                        <div className="mt-2 flex items-center gap-2">
+                            <span className="text-xs text-slate-400">Buscando:</span>
+                            {search.trim().split(/\s+/).filter(Boolean).map((term, i) => (
+                                <span key={i} className="inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700">
+                                    {term}
+                                </span>
+                            ))}
+                            <button
+                                onClick={() => setSearch('')}
+                                className="ml-1 text-xs text-slate-400 hover:text-slate-600"
+                            >
+                                Limpiar
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Árbol */}
