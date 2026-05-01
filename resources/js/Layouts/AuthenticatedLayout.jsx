@@ -93,6 +93,8 @@ export default function AuthenticatedLayout({ header, children }) {
 
                         {/* Mobile menu button */}
                         <button
+                            aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
+                            aria-expanded={menuOpen}
                             className="rounded-md p-2 text-slate-400 hover:bg-white/5 hover:text-white sm:hidden"
                             onClick={() => setMenuOpen(o => !o)}
                         >

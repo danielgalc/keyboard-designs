@@ -97,11 +97,11 @@ function ModelSection({ modelName, designs, printers, onTagClick }) {
     const [open, setOpen] = useState(true);
     return (
         <div className="border-b border-slate-100 last:border-0">
-            <button onClick={() => setOpen(o => !o)} className="flex w-full items-center gap-2 py-2 pl-10 pr-5 text-left hover:bg-slate-50 transition-colors">
+            <button onClick={() => setOpen(o => !o)} className="flex w-full items-center gap-2 py-2.5 pl-10 pr-5 text-left hover:bg-slate-50 transition-colors">
                 <svg className={`h-3 w-3 text-slate-400 transition-transform ${open ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-                <span className="text-sm font-medium text-slate-600">{modelName}</span>
+                <span className="text-sm font-semibold text-slate-700">{modelName}</span>
                 <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-400">
                     {designs.length} {designs.length === 1 ? 'diseño' : 'diseños'}
                 </span>
@@ -116,11 +116,11 @@ function DeviceTypeSection({ typeName, models, printers, onTagClick }) {
     const total = Object.values(models).reduce((sum, arr) => sum + arr.length, 0);
     return (
         <div className="border-b border-slate-100 last:border-0">
-            <button onClick={() => setOpen(o => !o)} className="flex w-full items-center gap-2 py-2 pl-6 pr-5 text-left hover:bg-slate-50 transition-colors">
+            <button onClick={() => setOpen(o => !o)} className="flex w-full items-center gap-2 py-3 pl-6 pr-5 text-left hover:bg-slate-50 transition-colors">
                 <svg className={`h-3.5 w-3.5 text-slate-400 transition-transform ${open ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-                <span className="text-sm font-semibold text-slate-700">{typeName}</span>
+                <span className="text-sm font-bold text-slate-800">{typeName}</span>
                 <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
                     {Object.keys(models).length} modelos · {total} diseños
                 </span>
