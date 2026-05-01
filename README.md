@@ -1,58 +1,193 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<div align="center">
+  <img src="public/Group 2.png" alt="KEYOUT" width="280" />
+  <br /><br />
+  <p><strong>Repositorio interno de diseños de impresión UV para teclados y dispositivos</strong></p>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+  ![Laravel](https://img.shields.io/badge/Laravel-11-FF2D20?style=flat-square&logo=laravel&logoColor=white)
+  ![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black)
+  ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?style=flat-square&logo=postgresql&logoColor=white)
+  ![Inertia](https://img.shields.io/badge/Inertia.js-2-9553E9?style=flat-square)
+  ![Tailwind](https://img.shields.io/badge/Tailwind-3-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
+</div>
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## ¿Qué es KEYOUT?
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+KEYOUT es una herramienta interna para equipos de impresión UV. Centraliza todos los diseños de layouts de teclados y frontales de dispositivos (portátiles, torres, SFF, mini PCs) en un único repositorio accesible por todo el equipo.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Antes de KEYOUT, los diseños estaban repartidos entre varios equipos y los datos de encuadre de cada impresora dependían de la memoria de una sola persona. Ahora cualquier trabajador nuevo puede encontrar un diseño, leer su configuración exacta y reproducir el trabajo correctamente sin depender de nadie.
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Características principales
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Repositorio de diseños
+- Jerarquía navegable: **Marca → Tipo → Modelo → Diseños**
+- Tipos de dispositivo: Portátil, Torre, SFF, Mini
+- Vista previa de PDF e imágenes directamente en el navegador
+- Descarga del archivo original
+- Búsqueda por texto con lógica **AND multi-término** (`HP PT` filtra por HP y por idioma PT simultáneamente)
+- Panel de filtros lateral: marca, tipo, idioma, estado de verificación y etiquetas
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+### Configuración por impresora
+- Datos de encuadre por diseño y por impresora (offset, rotación, escala)
+- Campos específicos para la **Mimaki UJF3042 MkIIe**: tipo de tinta, resolución, sobreimprimir
+- Galería de imágenes del encuadre por diseño e impresora
 
-## Agentic Development
+### Verificaciones y trazabilidad
+- Registro de verificaciones con fecha, usuario y observaciones
+- Aviso automático cuando la configuración se modifica tras la última verificación
+- Historial completo de cambios por impresora con diferencias campo a campo
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+### Etiquetas
+- Etiquetas de color por diseño para agrupar pedidos o categorías
+- Filtro multi-selección por etiquetas (lógica AND)
+- Gestión de etiquetas desde el panel de administración
+
+### Panel de administración
+- Gestión de usuarios y roles (Admin / Operator)
+- Catálogo de marcas y modelos con tipo de dispositivo
+- Gestión de impresoras
+- Gestión de etiquetas: renombrar, eliminar, limpiar sin uso
+
+### Dashboard
+- Resumen del repositorio con barras de progreso por impresora
+- Alertas de diseños pendientes de re-verificar
+- Últimos diseños subidos y últimas verificaciones
+
+---
+
+## Stack tecnológico
+
+| Capa | Tecnología |
+|---|---|
+| Backend | Laravel 11 (PHP 8.3) |
+| Frontend | React 18 + Inertia.js |
+| Estilos | Tailwind CSS 3 |
+| Base de datos | PostgreSQL |
+| Build | Vite 6 |
+| Servidor local | Laragon |
+
+---
+
+## Instalación
+
+### Requisitos
+- PHP 8.3+
+- Composer 2+
+- Node.js 20+
+- PostgreSQL 14+
+
+### 1. Clonar el repositorio
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone https://github.com/danielgalc/keyboard-designs.git
+cd keyboard-designs
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 2. Instalar dependencias
 
-## Contributing
+```bash
+composer install
+npm install
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 3. Configurar el entorno
 
-## Code of Conduct
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Editar `.env` con los datos de la base de datos:
 
-## Security Vulnerabilities
+```env
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=keyboard_designs
+DB_USERNAME=postgres
+DB_PASSWORD=tu_contraseña
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 4. Base de datos
 
-## License
+Crear la base de datos `keyboard_designs` en PostgreSQL y ejecutar:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+php artisan migrate --seed
+```
+
+El seeder crea automáticamente:
+- Las dos impresoras UV (Mimaki UJF3042 MkIIe y Nocai UV6090i-II)
+- 15 modelos de portátil de HP, Dell y Lenovo
+- Usuario administrador inicial
+
+### 5. Arrancar la aplicación
+
+En dos terminales separadas:
+
+```bash
+# Terminal 1
+php artisan serve
+
+# Terminal 2
+npm run dev
+```
+
+Acceder en `http://127.0.0.1:8000`
+
+### Credenciales iniciales
+
+| Campo | Valor |
+|---|---|
+| Email | `admin@keyboard-designs.local` |
+| Contraseña | `password` |
+
+> Cambiar la contraseña desde el perfil tras el primer acceso.
+
+---
+
+## Estructura del proyecto
+
+```
+app/
+├── Http/Controllers/
+├── Models/
+│   ├── Design.php
+│   ├── LaptopBrand.php / LaptopModel.php
+│   ├── Printer.php / PrinterSetting.php
+│   ├── PrinterSettingLog.php
+│   ├── Verification.php
+│   ├── PrinterImage.php
+│   └── Tag.php
+resources/js/
+├── Pages/
+│   ├── Designs/          # Index, Show, Create, Edit, Traceability
+│   ├── Admin/            # Catalog, Printers, Users, Tags
+│   ├── Auth/
+│   ├── Profile/
+│   └── Dashboard.jsx
+├── Layouts/
+├── Components/           # Combobox, TagInput
+└── utils/                # tagColor.js, printerLogo.js
+```
+
+---
+
+## Roles de usuario
+
+| Rol | Permisos |
+|---|---|
+| **Admin** | Acceso completo: usuarios, catálogo, impresoras, etiquetas, eliminación de diseños |
+| **Operator** | Subir y editar diseños, configurar encuadres, registrar verificaciones |
+
+---
+
+## Ramas
+
+| Rama | Uso |
+|---|---|
+| `main` | Versión estable |
+| `develop` | Desarrollo activo |
