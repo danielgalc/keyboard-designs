@@ -70,7 +70,7 @@ function GalleryModal({ design, printer, onClose }) {
                         <h2 className="text-base font-semibold text-slate-900">Galería de encuadre</h2>
                         <p className="text-sm text-slate-500">{printer.name}{printer.model && ` · ${printer.model}`}</p>
                     </div>
-                    <button onClick={onClose} className="rounded-md p-1 text-slate-400 hover:bg-slate-100">
+                    <button aria-label="Cerrar" onClick={onClose} className="rounded-md p-1 text-slate-400 hover:bg-slate-100">
                         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -247,7 +247,7 @@ function TraceabilityModal({ design, printer, settingLogs, verifications, onClos
                         <h2 className="text-base font-semibold text-slate-900">Trazabilidad</h2>
                         <p className="text-sm text-slate-500">{printer.name}{printer.model && ` · ${printer.model}`}</p>
                     </div>
-                    <button onClick={onClose} className="rounded-md p-1 text-slate-400 hover:bg-slate-100">
+                    <button aria-label="Cerrar" onClick={onClose} className="rounded-md p-1 text-slate-400 hover:bg-slate-100">
                         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -361,7 +361,7 @@ function SettingsModal({ design, printer, setting, onClose }) {
                         <h2 className="text-base font-semibold text-slate-900">Configuración y encuadre</h2>
                         <p className="text-sm text-slate-500">{printer.name}{printer.model && ` · ${printer.model}`}</p>
                     </div>
-                    <button onClick={onClose} className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+                    <button aria-label="Cerrar" onClick={onClose} className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
                         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -481,7 +481,7 @@ function VerificationModal({ design, printer, onClose }) {
                         <h2 className="text-base font-semibold text-slate-900">Registrar verificación</h2>
                         <p className="text-sm text-slate-500">{printer.name}</p>
                     </div>
-                    <button onClick={onClose} className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+                    <button aria-label="Cerrar" onClick={onClose} className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
                         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -528,7 +528,10 @@ function PrinterHeader({ name, model }) {
                 ? <img src={logo} alt={name} onError={() => setError(true)} className="h-5 w-auto object-contain" />
                 : <span className="text-sm font-semibold text-slate-800">{name}</span>
             }
-            {model && <p className="mt-0.5 text-xs text-slate-400">{model}</p>}
+            {logo && !error && (
+                <p className="mt-0.5 text-xs font-medium text-slate-600">{name}</p>
+            )}
+            {model && <p className="mt-0 text-xs text-slate-400">{model}</p>}
         </div>
     );
 }
@@ -615,7 +618,7 @@ function PrinterCard({ design, printer, settingLogs }) {
                 </div>
 
                 {/* Acciones */}
-                <div className="flex gap-2 border-t border-slate-100 bg-slate-50 px-5 py-3">
+                <div className="flex flex-wrap gap-2 border-t border-slate-100 bg-slate-50 px-5 py-3">
                     <button
                         onClick={() => setShowSettings(true)}
                         className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 transition-colors"
@@ -694,7 +697,7 @@ function PreviewModal({ design, onClose }) {
                         <a href={route('designs.download', design.id)} className="text-sm font-medium text-indigo-600 hover:text-indigo-800">
                             Descargar
                         </a>
-                        <button onClick={onClose} className="rounded-md p-1 text-slate-400 hover:bg-slate-100">
+                        <button aria-label="Cerrar" onClick={onClose} className="rounded-md p-1 text-slate-400 hover:bg-slate-100">
                             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>

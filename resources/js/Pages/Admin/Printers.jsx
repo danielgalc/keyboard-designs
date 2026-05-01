@@ -133,7 +133,7 @@ export default function Printers({ printers }) {
             )}
 
             <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 lg:px-8">
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
                     <table className="min-w-full">
                         <thead>
                             <tr className="border-b border-slate-100 bg-slate-50">
@@ -168,11 +168,11 @@ export default function Printers({ printers }) {
                                         )}
                                     </td>
                                     <td className="px-5 py-4">
-                                        <div className="flex items-center justify-end gap-3">
-                                            <button onClick={() => setEditingPrinter(printer)} className="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+                                        <div className="flex items-center justify-end gap-2">
+                                            <button onClick={() => setEditingPrinter(printer)} className="inline-flex min-h-[36px] items-center rounded-md border border-slate-200 bg-white px-3 text-sm font-medium text-indigo-600 hover:bg-slate-50 transition-colors">
                                                 Editar
                                             </button>
-                                            <button onClick={() => handleDelete(printer)} className="text-sm font-medium text-red-500 hover:text-red-700">
+                                            <button onClick={() => handleDelete(printer)} className="inline-flex min-h-[36px] items-center rounded-md border border-red-100 bg-red-50 px-3 text-sm font-medium text-red-600 hover:bg-red-100 transition-colors">
                                                 Eliminar
                                             </button>
                                         </div>

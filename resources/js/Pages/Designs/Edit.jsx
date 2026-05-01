@@ -52,7 +52,7 @@ export default function Edit({ design, brands }) {
 
     const submit = (e) => {
         e.preventDefault();
-        patch(route('designs.update', design.id), { forceFormData: true });
+        patch(route('designs.update', design.id), { forceFormData: !!data.file });
     };
 
     return (

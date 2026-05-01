@@ -213,7 +213,7 @@ export default function Users({ users }) {
             )}
 
             <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
                     <table className="min-w-full">
                         <thead>
                             <tr className="border-b border-slate-100 bg-slate-50">
@@ -249,17 +249,17 @@ export default function Users({ users }) {
                                         {formatDate(user.created_at)}
                                     </td>
                                     <td className="px-5 py-3.5">
-                                        <div className="flex items-center justify-end gap-3">
+                                        <div className="flex items-center justify-end gap-2">
                                             <button
                                                 onClick={() => setEditingUser(user)}
-                                                className="text-sm font-medium text-indigo-600 hover:text-indigo-800"
+                                                className="inline-flex min-h-[36px] items-center rounded-md border border-slate-200 bg-white px-3 text-sm font-medium text-indigo-600 hover:bg-slate-50 hover:text-indigo-800 transition-colors"
                                             >
                                                 Editar
                                             </button>
                                             {user.id !== auth.user.id && (
                                                 <button
                                                     onClick={() => handleDelete(user)}
-                                                    className="text-sm font-medium text-red-500 hover:text-red-700"
+                                                    className="inline-flex min-h-[36px] items-center rounded-md border border-red-100 bg-red-50 px-3 text-sm font-medium text-red-600 hover:bg-red-100 transition-colors"
                                                 >
                                                     Eliminar
                                                 </button>

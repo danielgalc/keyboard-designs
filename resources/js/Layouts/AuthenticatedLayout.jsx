@@ -46,6 +46,9 @@ export default function AuthenticatedLayout({ header, children }) {
                                         <NavItem href={route('admin.printers')} active={route().current('admin.printers')}>
                                             Impresoras
                                         </NavItem>
+                                        <NavItem href={route('admin.tags')} active={route().current('admin.tags')}>
+                                            Etiquetas
+                                        </NavItem>
                                         <NavItem href={route('admin.users')} active={route().current('admin.users')}>
                                             Usuarios
                                         </NavItem>
@@ -93,6 +96,8 @@ export default function AuthenticatedLayout({ header, children }) {
 
                         {/* Mobile menu button */}
                         <button
+                            aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
+                            aria-expanded={menuOpen}
                             className="rounded-md p-2 text-slate-400 hover:bg-white/5 hover:text-white sm:hidden"
                             onClick={() => setMenuOpen(o => !o)}
                         >

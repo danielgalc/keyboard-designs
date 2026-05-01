@@ -12,10 +12,17 @@ function formatDate(dateStr) {
 function PrinterLogoOrName({ name }) {
     const logo = getPrinterLogo(name);
     const [error, setError] = useState(false);
-    if (logo && !error) {
-        return <img src={logo} alt={name} onError={() => setError(true)} className="h-6 w-auto object-contain" />;
-    }
-    return <span className="text-sm font-bold text-slate-700">{name}</span>;
+    return (
+        <div>
+            {logo && !error
+                ? <img src={logo} alt={name} onError={() => setError(true)} className="h-5 w-auto object-contain" />
+                : <span className="text-sm font-bold text-slate-700">{name}</span>
+            }
+            {logo && !error && (
+                <p className="mt-0.5 text-xs font-medium text-slate-500">{name}</p>
+            )}
+        </div>
+    );
 }
 
 function ProgressBar({ value, total }) {
@@ -108,68 +115,75 @@ export default function Dashboard({ totalDesigns, printerStats, needsReverificat
 
             <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
 
-                {/* Stats row */}
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {/* Stats — panel unificado */}
+                <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                    <div className="grid divide-x divide-slate-100" style={{ gridTemplateColumns: `180px repeat(${printerStats.length}, 1fr)` }}>
 
-                    {/* Total */}
-                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <div className="flex items-center justify-between">
-                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Repositorio</p>
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50">
-                                <svg className="h-4 w-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
+                        {/* Total */}
+                        <div className="flex flex-col justify-between p-5">
+                            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Repositorio</p>
+                            <div className="mt-6">
+                                <span className="text-4xl font-bold tracking-tight text-slate-800">{totalDesigns}</span>
+                                <p className="mt-1 text-sm text-slate-500">diseños</p>
                             </div>
+                            <Link href={route('designs.index')} className="mt-4 text-xs font-medium text-indigo-600 hover:text-indigo-800">
+                                Ver repositorio →
+                            </Link>
                         </div>
-                        <p className="mt-3 text-3xl font-bold text-slate-800">{totalDesigns}</p>
-                        <p className="mt-1 text-sm text-slate-500">diseños en total</p>
+
+                        {/* Una columna por impresora */}
+                        {printerStats.map(p => {
+                            const pct = totalDesigns > 0 ? Math.round((p.verified / totalDesigns) * 100) : 0;
+                            const allVerified = p.verified === totalDesigns && totalDesigns > 0;
+                            return (
+                                <div key={p.id} className="p-5 flex flex-col gap-3">
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div className="min-w-0">
+                                            <PrinterLogoOrName name={p.name} />
+                                            {p.model && <p className="mt-0.5 text-xs text-slate-400 truncate">{p.model}</p>}
+                                        </div>
+                                        <span className={`shrink-0 text-xs font-semibold tabular-nums ${allVerified ? 'text-emerald-600' : 'text-slate-500'}`}>
+                                            {pct}%
+                                        </span>
+                                    </div>
+
+                                    <div>
+                                        <div className="h-1.5 w-full rounded-full bg-slate-100">
+                                            <div
+                                                className={`h-1.5 rounded-full transition-all ${allVerified ? 'bg-emerald-500' : 'bg-indigo-400'}`}
+                                                style={{ width: `${pct}%` }}
+                                            />
+                                        </div>
+                                        <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
+                                            <span>{p.verified} verificados</span>
+                                            <span className="text-slate-300">{p.configured} config.</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
 
-                    {/* Por impresora */}
-                    {printerStats.map(p => (
-                        <div key={p.id} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                            <div className="flex items-center justify-between">
-                                <PrinterLogoOrName name={p.name} />
-                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50">
-                                    <svg className="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                            </div>
-                            {p.model && <p className="mt-0.5 text-xs text-slate-400">{p.model}</p>}
-                            <p className="mt-3 text-3xl font-bold text-slate-800">{p.verified}</p>
-                            <p className="mt-1 text-sm text-slate-500">verificados · {p.configured} configurados</p>
-                            <ProgressBar value={p.verified} total={totalDesigns} />
-                        </div>
-                    ))}
-
-                    {/* Pendientes re-verificar */}
-                    <div className={`rounded-xl border p-5 shadow-sm ${needsReverification > 0 ? 'border-orange-200 bg-orange-50' : 'border-slate-200 bg-white'}`}>
-                        <div className="flex items-center justify-between">
-                            <p className={`text-xs font-semibold uppercase tracking-wide ${needsReverification > 0 ? 'text-orange-500' : 'text-slate-400'}`}>
-                                Re-verificar
-                            </p>
-                            <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${needsReverification > 0 ? 'bg-orange-100' : 'bg-slate-100'}`}>
-                                <svg className={`h-4 w-4 ${needsReverification > 0 ? 'text-orange-600' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    {/* Franja de alerta — inline, no card */}
+                    {needsReverification > 0 && (
+                        <div className="border-t border-orange-100 bg-orange-50 px-5 py-3 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <svg className="h-4 w-4 text-orange-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                 </svg>
+                                <span className="text-sm font-medium text-orange-800">
+                                    {needsReverification} {needsReverification === 1 ? 'diseño pendiente' : 'diseños pendientes'} de re-verificar
+                                </span>
+                                <span className="text-xs text-orange-500">Configuración modificada tras la última verificación</span>
                             </div>
-                        </div>
-                        <p className={`mt-3 text-3xl font-bold ${needsReverification > 0 ? 'text-orange-700' : 'text-slate-800'}`}>
-                            {needsReverification}
-                        </p>
-                        <p className={`mt-1 text-sm ${needsReverification > 0 ? 'text-orange-600' : 'text-slate-500'}`}>
-                            pendientes de re-verificar
-                        </p>
-                        {needsReverification > 0 && (
                             <button
                                 onClick={() => setShowStale(true)}
-                                className="mt-3 text-xs font-semibold text-orange-700 hover:text-orange-900 underline underline-offset-2"
+                                className="shrink-0 text-xs font-semibold text-orange-700 hover:text-orange-900 underline underline-offset-2"
                             >
-                                Ver listado →
+                                Ver listado
                             </button>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Listas */}

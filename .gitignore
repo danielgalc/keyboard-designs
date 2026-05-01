@@ -1,4 +1,7 @@
 *.log
+/.agents/
+/.claude/skills/
+skills-lock.json
 .DS_Store
 .env
 .env.backup
