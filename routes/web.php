@@ -62,6 +62,12 @@ Route::middleware('auth')->group(function () {
         Route::patch('/printers/{printer}',  [PrinterController::class, 'update'])->name('admin.printers.update');
         Route::delete('/printers/{printer}', [PrinterController::class, 'destroy'])->name('admin.printers.destroy');
 
+        Route::get('/tags',                  [TagController::class, 'adminIndex'])->name('admin.tags');
+        Route::post('/tags',                 [TagController::class, 'store'])->name('admin.tags.store');
+        Route::patch('/tags/{tag}',          [TagController::class, 'update'])->name('admin.tags.update');
+        Route::delete('/tags/{tag}',         [TagController::class, 'destroy'])->name('admin.tags.destroy');
+        Route::delete('/tags-unused',        [TagController::class, 'destroyUnused'])->name('admin.tags.destroyUnused');
+
         Route::get('/users',              [UserController::class, 'index'])->name('admin.users');
         Route::post('/users',             [UserController::class, 'store'])->name('admin.users.store');
         Route::patch('/users/{user}',     [UserController::class, 'update'])->name('admin.users.update');

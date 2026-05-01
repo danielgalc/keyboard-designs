@@ -46,6 +46,9 @@ export default function AuthenticatedLayout({ header, children }) {
                                         <NavItem href={route('admin.printers')} active={route().current('admin.printers')}>
                                             Impresoras
                                         </NavItem>
+                                        <NavItem href={route('admin.tags')} active={route().current('admin.tags')}>
+                                            Etiquetas
+                                        </NavItem>
                                         <NavItem href={route('admin.users')} active={route().current('admin.users')}>
                                             Usuarios
                                         </NavItem>
