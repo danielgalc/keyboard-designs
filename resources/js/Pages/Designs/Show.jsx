@@ -773,11 +773,11 @@ export default function Show({ design, printers, settingLogs, allTags }) {
                             </svg>
                         </Link>
                         <div>
-                            <h1 className="text-lg font-semibold text-slate-900">{design.name}</h1>
-                            <p className="text-sm text-slate-500">
+                            <p className="text-sm font-medium text-slate-500 flex items-center gap-1.5">
                                 {[design.laptop_model?.brand?.name, design.laptop_model?.name].filter(Boolean).join(' · ') || 'Sin modelo especificado'}
-                                {design.language && <span className="ml-2 rounded bg-indigo-50 px-1.5 py-0.5 text-xs font-bold text-indigo-600">{design.language}</span>}
+                                {design.language && <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-xs font-bold text-indigo-600">{design.language}</span>}
                             </p>
+                            <h1 className="text-lg font-semibold text-slate-900">{design.name}</h1>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -824,7 +824,7 @@ export default function Show({ design, printers, settingLogs, allTags }) {
                 </div>
             }
         >
-            <Head title={design.name} />
+            <Head title={[design.laptop_model?.brand?.name, design.laptop_model?.name, design.language, design.name].filter(Boolean).join(' · ')} />
 
             {toast && (
                 <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-3 text-sm font-medium text-white shadow-lg">
