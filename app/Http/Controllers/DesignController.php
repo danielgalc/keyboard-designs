@@ -53,7 +53,9 @@ class DesignController extends Controller
             ->orderBy('name')
             ->get();
 
-        return Inertia::render('Designs/Create', ['brands' => $brands]);
+        $languages = Design::whereNotNull('language')->distinct()->orderBy('language')->pluck('language');
+
+        return Inertia::render('Designs/Create', ['brands' => $brands, 'languages' => $languages]);
     }
 
     public function store(Request $request)
@@ -156,9 +158,12 @@ class DesignController extends Controller
             ->orderBy('name')
             ->get();
 
+        $languages = Design::whereNotNull('language')->distinct()->orderBy('language')->pluck('language');
+
         return Inertia::render('Designs/Edit', [
-            'design' => $design,
-            'brands' => $brands,
+            'design'    => $design,
+            'brands'    => $brands,
+            'languages' => $languages,
         ]);
     }
 
