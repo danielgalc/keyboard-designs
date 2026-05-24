@@ -46,7 +46,7 @@ function VerificationDot({ design, printer }) {
 // ── Fila de diseño ────────────────────────────────────────────────────────────
 function DesignRow({ design, printers, onTagClick }) {
     return (
-        <div className="flex items-center justify-between py-2.5 pl-14 pr-5 hover:bg-slate-50 group border-b border-slate-100 last:border-0">
+        <div className="flex items-center justify-between py-2.5 pl-14 pr-5 hover:bg-slate-50 group border-b border-slate-100 last:border-0 dark:border-slate-700 dark:hover:bg-slate-700">
             <div className="flex items-center gap-4 min-w-0">
                 {design.language && (
                     <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-xs font-bold text-indigo-600 shrink-0">
@@ -54,8 +54,8 @@ function DesignRow({ design, printers, onTagClick }) {
                     </span>
                 )}
                 <div className="min-w-0">
-                    <p className="text-sm font-medium text-slate-700 truncate">{design.name}</p>
-                    <p className="text-xs text-slate-400 truncate mt-0.5">{design.file_name}</p>
+                    <p className="text-sm font-medium text-slate-700 truncate dark:text-slate-300">{design.name}</p>
+                    <p className="text-xs text-slate-400 truncate mt-0.5 dark:text-slate-500">{design.file_name}</p>
                     {design.tags?.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-1.5">
                             {design.tags.map(tag => {
@@ -93,13 +93,13 @@ function DesignRow({ design, printers, onTagClick }) {
 function ModelSection({ modelName, designs, printers, onTagClick }) {
     const [open, setOpen] = useState(true);
     return (
-        <div className="border-b border-slate-100 last:border-0">
-            <button onClick={() => setOpen(o => !o)} className="flex w-full items-center gap-2 py-2.5 pl-10 pr-5 text-left hover:bg-slate-50 transition-colors">
+        <div className="border-b border-slate-100 last:border-0 dark:border-slate-700">
+            <button onClick={() => setOpen(o => !o)} className="flex w-full items-center gap-2 py-2.5 pl-10 pr-5 text-left hover:bg-slate-50 transition-colors dark:hover:bg-slate-700">
                 <svg className={`h-3 w-3 text-slate-400 transition-transform ${open ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-                <span className="text-sm font-semibold text-slate-700">{modelName}</span>
-                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-400">
+                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{modelName}</span>
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-400 dark:bg-slate-700 dark:text-slate-500">
                     {designs.length} {designs.length === 1 ? 'diseño' : 'diseños'}
                 </span>
             </button>
@@ -112,13 +112,13 @@ function DeviceTypeSection({ typeName, models, printers, onTagClick }) {
     const [open, setOpen] = useState(true);
     const total = Object.values(models).reduce((sum, arr) => sum + arr.length, 0);
     return (
-        <div className="border-b border-slate-100 last:border-0">
-            <button onClick={() => setOpen(o => !o)} className="flex w-full items-center gap-2 py-3 pl-6 pr-5 text-left hover:bg-slate-50 transition-colors">
+        <div className="border-b border-slate-100 last:border-0 dark:border-slate-700">
+            <button onClick={() => setOpen(o => !o)} className="flex w-full items-center gap-2 py-3 pl-6 pr-5 text-left hover:bg-slate-50 transition-colors dark:hover:bg-slate-700">
                 <svg className={`h-3.5 w-3.5 text-slate-400 transition-transform ${open ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-                <span className="text-sm font-bold text-slate-800">{typeName}</span>
-                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
+                <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{typeName}</span>
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500 dark:bg-slate-700 dark:text-slate-400">
                     {Object.keys(models).length} modelos · {total} diseños
                 </span>
             </button>
@@ -132,7 +132,7 @@ function DeviceTypeSection({ typeName, models, printers, onTagClick }) {
 function BrandLogo({ brandName }) {
     const src = `/logos/${brandName}_Logo.png`;
     const [error, setError] = useState(false);
-    if (error) return <span className="text-base font-bold text-slate-800">{brandName}</span>;
+    if (error) return <span className="text-base font-bold text-slate-800 dark:text-slate-200">{brandName}</span>;
     return <img src={src} alt={brandName} onError={() => setError(true)} className="h-6 w-auto object-contain" />;
 }
 
@@ -142,14 +142,14 @@ function BrandSection({ brandName, deviceTypes, printers, onTagClick }) {
         sum + Object.values(models).reduce((s, arr) => s + arr.length, 0), 0);
 
     return (
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
             <button onClick={() => setOpen(o => !o)}
-                className="flex w-full items-center gap-3 border-b border-slate-100 bg-slate-50 px-5 py-3.5 text-left hover:bg-slate-100 transition-colors">
+                className="flex w-full items-center gap-3 border-b border-slate-100 bg-slate-50 px-5 py-3.5 text-left hover:bg-slate-100 transition-colors dark:border-slate-700 dark:bg-slate-900/40 dark:hover:bg-slate-700">
                 <svg className={`h-4 w-4 text-slate-500 transition-transform ${open ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
                 <BrandLogo brandName={brandName} />
-                <span className="rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+                <span className="rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-medium text-slate-600 dark:bg-slate-700 dark:text-slate-300">
                     {total} diseños
                 </span>
             </button>
@@ -252,7 +252,7 @@ function BrandFilterLogo({ name }) {
 function FilterSection({ title, items, active, onSelect, type }) {
     return (
         <div>
-            <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">{title}</p>
+            <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">{title}</p>
             <ul className="space-y-0.5">
                 {items.map(({ value, label, count }) => {
                     const isActive = active === value;
@@ -262,8 +262,8 @@ function FilterSection({ title, items, active, onSelect, type }) {
                                 onClick={() => onSelect(isActive ? null : value)}
                                 className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors ${
                                     isActive
-                                        ? 'bg-indigo-50 font-semibold text-indigo-700'
-                                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                                        ? 'bg-indigo-50 font-semibold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300'
+                                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200'
                                 }`}
                             >
                                 {/* Icono según tipo de filtro */}
@@ -405,7 +405,7 @@ export default function Index({ designs, printers, filters }) {
             header={
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-lg font-semibold text-slate-900">Diseños</h1>
+                        <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Diseños</h1>
                         <p className="text-sm text-slate-500">
                             {filteredDesigns.length !== designs.length
                                 ? `${filteredDesigns.length} de ${designs.length} diseños`
@@ -443,7 +443,7 @@ export default function Index({ designs, printers, filters }) {
                         </svg>
                         <input type="text" value={search} onChange={e => setSearch(e.target.value)}
                             placeholder="Buscar... separa palabras para combinar: HP PT, Dell EN..."
-                            className="block w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-4 text-sm shadow-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 lg:max-w-lg" />
+                            className="block w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-4 text-sm shadow-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 lg:max-w-lg dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500" />
                     </div>
                 </div>
 
@@ -483,7 +483,7 @@ export default function Index({ designs, printers, filters }) {
 
                     {/* Panel de filtros */}
                     <aside className={`w-full lg:w-48 lg:shrink-0 space-y-5 ${showFilters ? 'block' : 'hidden'} lg:block`}>
-                        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-5">
+                        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-5 dark:border-slate-700 dark:bg-slate-800">
 
                             {activeFiltersCount > 0 && (
                                 <button onClick={clearFilters}
@@ -540,7 +540,7 @@ export default function Index({ designs, printers, filters }) {
                     {/* Árbol de diseños */}
                     <div className="flex-1 min-w-0">
                         {Object.keys(tree).length === 0 ? (
-                            <div className="flex flex-col items-center justify-center rounded-xl border border-slate-200 bg-white py-20 shadow-sm">
+                            <div className="flex flex-col items-center justify-center rounded-xl border border-slate-200 bg-white py-20 shadow-sm dark:border-slate-700 dark:bg-slate-800">
                                 <svg className="h-12 w-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>

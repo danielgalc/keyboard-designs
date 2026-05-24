@@ -16,10 +16,10 @@ function PrinterLogoOrName({ name }) {
         <div>
             {logo && !error
                 ? <img src={logo} alt={name} onError={() => setError(true)} className="h-5 w-auto object-contain" />
-                : <span className="text-sm font-bold text-slate-700">{name}</span>
+                : <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{name}</span>
             }
             {logo && !error && (
-                <p className="mt-0.5 text-xs font-medium text-slate-500">{name}</p>
+                <p className="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">{name}</p>
             )}
         </div>
     );
@@ -38,6 +38,49 @@ function ProgressBar({ value, total }) {
                     className="h-1.5 rounded-full bg-emerald-500 transition-all"
                     style={{ width: `${pct}%` }}
                 />
+            </div>
+        </div>
+    );
+}
+
+function NeverVerifiedModal({ designs, onClose }) {
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={onClose}>
+            <div className="flex max-h-[80vh] w-full max-w-2xl flex-col rounded-xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 shrink-0">
+                    <div>
+                        <h2 className="text-base font-semibold text-slate-900">Sin verificar</h2>
+                        <p className="text-sm text-slate-500">Diseños nuevos que aún no han sido verificados en ninguna impresora</p>
+                    </div>
+                    <button onClick={onClose} className="rounded-md p-1 text-slate-400 hover:bg-slate-100">
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <ul className="overflow-y-auto divide-y divide-slate-100">
+                    {designs.map(d => (
+                        <li key={d.id}>
+                            <Link
+                                href={route('designs.show', d.id)}
+                                onClick={onClose}
+                                className="flex items-center justify-between px-6 py-3.5 hover:bg-slate-50 transition-colors"
+                            >
+                                <div className="min-w-0">
+                                    <p className="text-sm font-semibold text-slate-800">
+                                        {[d.laptop_model?.brand?.name, d.laptop_model?.name].filter(Boolean).join(' · ')}
+                                    </p>
+                                    <p className="text-xs text-slate-500">
+                                        {d.name}{d.language && <span className="ml-1.5 font-bold text-indigo-500">{d.language}</span>}
+                                    </p>
+                                </div>
+                                <svg className="h-4 w-4 text-slate-300 ml-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </Link>
+                        </li>
+                    ))}
+                </ul>
             </div>
         </div>
     );
@@ -96,8 +139,9 @@ function StaleDesignsModal({ designs, printers, onClose }) {
     );
 }
 
-export default function Dashboard({ totalDesigns, printerStats, needsReverification, staleDesigns, recentDesigns, recentVerifications }) {
+export default function Dashboard({ totalDesigns, printerStats, needsReverification, staleDesigns, neverVerifiedCount, neverVerifiedDesigns, recentDesigns, recentVerifications }) {
     const [showStale, setShowStale] = useState(false);
+    const [showNeverVerified, setShowNeverVerified] = useState(false);
 
     // Reconstruir lista de printers desde printerStats para el modal
     const printers = printerStats.map(p => ({ id: p.id, name: p.name }));
@@ -106,8 +150,8 @@ export default function Dashboard({ totalDesigns, printerStats, needsReverificat
         <AuthenticatedLayout
             header={
                 <div>
-                    <h1 className="text-lg font-semibold text-slate-900">Inicio</h1>
-                    <p className="text-sm text-slate-500">Resumen del repositorio</p>
+                    <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Inicio</h1>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Resumen del repositorio</p>
                 </div>
             }
         >
@@ -116,18 +160,18 @@ export default function Dashboard({ totalDesigns, printerStats, needsReverificat
             <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
 
                 {/* Stats — panel unificado */}
-                <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden dark:border-slate-700 dark:bg-slate-800">
 
                     {/* Móvil: apilado vertical / Desktop: columnas en grid */}
-                    <div className="flex flex-col divide-y divide-slate-100 lg:divide-y-0 lg:divide-x lg:grid"
+                    <div className="flex flex-col divide-y divide-slate-100 lg:divide-y-0 lg:divide-x lg:grid dark:divide-slate-700"
                         style={{ gridTemplateColumns: `180px repeat(${printerStats.length}, 1fr)` }}>
 
                         {/* Total */}
                         <div className="flex flex-col justify-between p-5">
-                            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Repositorio</p>
+                            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500">Repositorio</p>
                             <div className="mt-3 lg:mt-6">
-                                <span className="text-3xl font-bold tracking-tight text-slate-800 lg:text-4xl">{totalDesigns}</span>
-                                <p className="mt-1 text-sm text-slate-500">diseños</p>
+                                <span className="text-3xl font-bold tracking-tight text-slate-800 lg:text-4xl dark:text-slate-100">{totalDesigns}</span>
+                                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">diseños</p>
                             </div>
                             <Link href={route('designs.index')} className="mt-3 lg:mt-4 text-xs font-medium text-indigo-600 hover:text-indigo-800">
                                 Ver repositorio →
@@ -145,18 +189,18 @@ export default function Dashboard({ totalDesigns, printerStats, needsReverificat
                                             <PrinterLogoOrName name={p.name} />
                                             {p.model && <p className="mt-0.5 text-xs text-slate-400 truncate">{p.model}</p>}
                                         </div>
-                                        <span className={`shrink-0 text-xs font-semibold tabular-nums ${allVerified ? 'text-emerald-600' : 'text-slate-500'}`}>
+                                        <span className={`shrink-0 text-xs font-semibold tabular-nums ${allVerified ? 'text-emerald-600' : 'text-slate-500 dark:text-slate-400'}`}>
                                             {pct}%
                                         </span>
                                     </div>
                                     <div>
-                                        <div className="h-1.5 w-full rounded-full bg-slate-100">
+                                        <div className="h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-700">
                                             <div className={`h-1.5 rounded-full transition-all ${allVerified ? 'bg-emerald-500' : 'bg-indigo-400'}`}
                                                 style={{ width: `${pct}%` }} />
                                         </div>
-                                        <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
+                                        <div className="mt-2 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                                             <span>{p.verified} verificados</span>
-                                            <span className="text-slate-300">{p.configured} config.</span>
+                                            <span className="text-slate-300 dark:text-slate-600">{p.configured} config.</span>
                                         </div>
                                     </div>
                                 </div>
@@ -164,7 +208,27 @@ export default function Dashboard({ totalDesigns, printerStats, needsReverificat
                         })}
                     </div>
 
-                    {/* Franja de alerta */}
+                    {/* Franja: nuevos sin verificar */}
+                    {neverVerifiedCount > 0 && (
+                        <div className="border-t border-sky-100 bg-sky-50 px-5 py-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex items-start gap-2 sm:items-center">
+                                <svg className="h-4 w-4 text-sky-500 shrink-0 mt-0.5 sm:mt-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span className="text-sm font-medium text-sky-800">
+                                    {neverVerifiedCount} {neverVerifiedCount === 1 ? 'diseño nuevo sin verificar' : 'diseños nuevos sin verificar'}
+                                </span>
+                            </div>
+                            <button
+                                onClick={() => setShowNeverVerified(true)}
+                                className="shrink-0 text-xs font-semibold text-sky-700 hover:text-sky-900 underline underline-offset-2 text-left sm:text-right"
+                            >
+                                Ver listado
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Franja: pendientes de re-verificar */}
                     {needsReverification > 0 && (
                         <div className="border-t border-orange-100 bg-orange-50 px-5 py-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                             <div className="flex items-start gap-2 sm:items-center">
@@ -189,32 +253,32 @@ export default function Dashboard({ totalDesigns, printerStats, needsReverificat
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 
                     {/* Últimos diseños */}
-                    <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                        <div className="border-b border-slate-100 px-5 py-4 flex items-center justify-between">
-                            <h2 className="text-sm font-semibold text-slate-700">Últimos diseños subidos</h2>
-                            <Link href={route('designs.index')} className="text-xs font-medium text-indigo-600 hover:text-indigo-800">
+                    <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden dark:border-slate-700 dark:bg-slate-800">
+                        <div className="border-b border-slate-100 px-5 py-4 flex items-center justify-between dark:border-slate-700">
+                            <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Últimos diseños subidos</h2>
+                            <Link href={route('designs.index')} className="text-xs font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
                                 Ver todos →
                             </Link>
                         </div>
-                        <ul className="divide-y divide-slate-100">
+                        <ul className="divide-y divide-slate-100 dark:divide-slate-700">
                             {recentDesigns.length === 0 && (
-                                <li className="px-5 py-10 text-center text-sm text-slate-400">Sin diseños todavía</li>
+                                <li className="px-5 py-10 text-center text-sm text-slate-400 dark:text-slate-500">Sin diseños todavía</li>
                             )}
                             {recentDesigns.map(d => (
                                 <li key={d.id}>
-                                    <Link href={route('designs.show', d.id)} className="flex items-center justify-between px-5 py-3 hover:bg-slate-50 transition-colors group">
+                                    <Link href={route('designs.show', d.id)} className="flex items-center justify-between px-5 py-3 hover:bg-slate-50 transition-colors group dark:hover:bg-slate-700">
                                         <div className="flex items-center gap-3 min-w-0">
                                             {d.language && (
-                                                <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-xs font-bold text-indigo-600 shrink-0">{d.language}</span>
+                                                <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-xs font-bold text-indigo-600 shrink-0 dark:bg-indigo-900/40 dark:text-indigo-300">{d.language}</span>
                                             )}
                                             <div className="min-w-0">
-                                                <p className="text-sm font-semibold text-slate-800 truncate">
+                                                <p className="text-sm font-semibold text-slate-800 truncate dark:text-slate-200">
                                                     {[d.laptop_model?.brand?.name, d.laptop_model?.name].filter(Boolean).join(' · ')}
                                                 </p>
-                                                <p className="text-xs text-slate-500 truncate">{d.name}</p>
+                                                <p className="text-xs text-slate-500 truncate dark:text-slate-400">{d.name}</p>
                                             </div>
                                         </div>
-                                        <span className="text-xs text-slate-400 shrink-0 ml-3">{formatDate(d.created_at)}</span>
+                                        <span className="text-xs text-slate-400 shrink-0 ml-3 dark:text-slate-500">{formatDate(d.created_at)}</span>
                                     </Link>
                                 </li>
                             ))}
@@ -222,36 +286,36 @@ export default function Dashboard({ totalDesigns, printerStats, needsReverificat
                     </div>
 
                     {/* Últimas verificaciones */}
-                    <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                        <div className="border-b border-slate-100 px-5 py-4">
-                            <h2 className="text-sm font-semibold text-slate-700">Últimas verificaciones</h2>
+                    <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden dark:border-slate-700 dark:bg-slate-800">
+                        <div className="border-b border-slate-100 px-5 py-4 dark:border-slate-700">
+                            <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Últimas verificaciones</h2>
                         </div>
-                        <ul className="divide-y divide-slate-100">
+                        <ul className="divide-y divide-slate-100 dark:divide-slate-700">
                             {recentVerifications.length === 0 && (
-                                <li className="px-5 py-10 text-center text-sm text-slate-400">Sin verificaciones todavía</li>
+                                <li className="px-5 py-10 text-center text-sm text-slate-400 dark:text-slate-500">Sin verificaciones todavía</li>
                             )}
                             {recentVerifications.map(v => (
                                 <li key={v.id}>
-                                    <Link href={route('designs.show', v.design_id)} className="flex items-center justify-between px-5 py-3 hover:bg-slate-50 transition-colors">
+                                    <Link href={route('designs.show', v.design_id)} className="flex items-center justify-between px-5 py-3 hover:bg-slate-50 transition-colors dark:hover:bg-slate-700">
                                         <div className="flex items-center gap-3 min-w-0">
-                                            <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">
+                                            <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
                                                 {v.user?.name?.charAt(0).toUpperCase()}
                                             </span>
                                             <div className="min-w-0">
-                                                <p className="text-sm font-semibold text-slate-800 truncate">
+                                                <p className="text-sm font-semibold text-slate-800 truncate dark:text-slate-200">
                                                     {[v.design?.laptop_model?.brand?.name, v.design?.laptop_model?.name].filter(Boolean).join(' · ')}
                                                 </p>
-                                                <p className="text-xs text-slate-500 truncate">
+                                                <p className="text-xs text-slate-500 truncate dark:text-slate-400">
                                                     {v.design?.name}
-                                                    {v.design?.language && <span className="ml-1 font-bold text-indigo-500">{v.design.language}</span>}
-                                                    <span className="mx-1.5 text-slate-300">·</span>
+                                                    {v.design?.language && <span className="ml-1 font-bold text-indigo-500 dark:text-indigo-400">{v.design.language}</span>}
+                                                    <span className="mx-1.5 text-slate-300 dark:text-slate-600">·</span>
                                                     {v.printer?.name}
-                                                    <span className="mx-1.5 text-slate-300">·</span>
+                                                    <span className="mx-1.5 text-slate-300 dark:text-slate-600">·</span>
                                                     {v.user?.name}
                                                 </p>
                                             </div>
                                         </div>
-                                        <span className="text-xs text-slate-400 shrink-0 ml-3">{formatDate(v.verified_at)}</span>
+                                        <span className="text-xs text-slate-400 shrink-0 ml-3 dark:text-slate-500">{formatDate(v.verified_at)}</span>
                                     </Link>
                                 </li>
                             ))}
@@ -259,6 +323,13 @@ export default function Dashboard({ totalDesigns, printerStats, needsReverificat
                     </div>
                 </div>
             </div>
+
+            {showNeverVerified && (
+                <NeverVerifiedModal
+                    designs={neverVerifiedDesigns}
+                    onClose={() => setShowNeverVerified(false)}
+                />
+            )}
 
             {showStale && (
                 <StaleDesignsModal

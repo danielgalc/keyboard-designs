@@ -76,10 +76,10 @@ export default function Combobox({
                     autoComplete="off"
                     className={`block w-full rounded-lg border px-3 py-2.5 pr-9 text-sm shadow-sm transition-colors focus:outline-none focus:ring-1 ${
                         disabled
-                            ? 'cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400'
+                            ? 'cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400 dark:border-slate-600 dark:bg-slate-700/50 dark:text-slate-500'
                             : open
-                                ? 'border-indigo-500 bg-white text-slate-900 ring-1 ring-indigo-500'
-                                : 'border-slate-200 bg-white text-slate-900 hover:border-slate-300'
+                                ? 'border-indigo-500 bg-white text-slate-900 ring-1 ring-indigo-500 dark:bg-slate-700 dark:text-slate-100'
+                                : 'border-slate-200 bg-white text-slate-900 hover:border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:hover:border-slate-500'
                     }`}
                 />
                 <button
@@ -96,12 +96,12 @@ export default function Combobox({
             </div>
 
             {open && !disabled && (
-                <ul className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg text-sm">
+                <ul className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg text-sm dark:border-slate-600 dark:bg-slate-800">
                     {filtered.length === 0 ? (
                         allowNew && query.trim() ? (
                             <li
                                 onMouseDown={() => handleSelect(query.trim())}
-                                className="flex items-center gap-2 cursor-pointer px-3 py-2 text-indigo-600 hover:bg-indigo-50"
+                                className="flex items-center gap-2 cursor-pointer px-3 py-2 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/40"
                             >
                                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -109,7 +109,7 @@ export default function Combobox({
                                 Crear "<strong>{query.trim()}</strong>"
                             </li>
                         ) : (
-                            <li className="px-3 py-2 text-slate-400">Sin resultados</li>
+                            <li className="px-3 py-2 text-slate-400 dark:text-slate-500">Sin resultados</li>
                         )
                     ) : (
                         <>
@@ -117,8 +117,8 @@ export default function Combobox({
                                 <li
                                     key={option}
                                     onMouseDown={() => handleSelect(option)}
-                                    className={`cursor-pointer px-3 py-2 hover:bg-indigo-50 hover:text-indigo-700 ${
-                                        option === value ? 'bg-indigo-50 font-semibold text-indigo-700' : 'text-slate-700'
+                                    className={`cursor-pointer px-3 py-2 hover:bg-indigo-50 hover:text-indigo-700 dark:hover:bg-indigo-900/40 dark:hover:text-indigo-300 ${
+                                        option === value ? 'bg-indigo-50 font-semibold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300' : 'text-slate-700 dark:text-slate-300'
                                     }`}
                                 >
                                     {option}
@@ -127,7 +127,7 @@ export default function Combobox({
                             {allowNew && query.trim() && !options.includes(query.trim()) && (
                                 <li
                                     onMouseDown={() => handleSelect(query.trim())}
-                                    className="flex items-center gap-2 cursor-pointer border-t border-slate-100 px-3 py-2 text-indigo-600 hover:bg-indigo-50"
+                                    className="flex items-center gap-2 cursor-pointer border-t border-slate-100 px-3 py-2 text-indigo-600 hover:bg-indigo-50 dark:border-slate-700 dark:hover:bg-indigo-900/40"
                                 >
                                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
