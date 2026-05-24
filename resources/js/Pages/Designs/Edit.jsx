@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useMemo } from 'react';
 
-const inputClass = "block w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500";
+const inputClass = "block w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-500";
 
 const DEVICE_TYPES = [
     { value: 'laptop', label: 'Portátil' },
@@ -15,11 +15,11 @@ const DEVICE_TYPES = [
 function Field({ label, error, required, hint, children }) {
     return (
         <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+            <label className="block text-sm font-medium text-slate-700 mb-1.5 dark:text-slate-300">
                 {label}{required && <span className="ml-0.5 text-red-500">*</span>}
             </label>
             {children}
-            {hint && <p className="mt-1 text-xs text-slate-400">{hint}</p>}
+            {hint && <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">{hint}</p>}
             {error && <p className="mt-1.5 text-xs font-medium text-red-600">{error}</p>}
         </div>
     );
@@ -65,8 +65,8 @@ export default function Edit({ design, brands, languages }) {
                         </svg>
                     </Link>
                     <div>
-                        <h1 className="text-lg font-semibold text-slate-900">Editar diseño</h1>
-                        <p className="text-sm text-slate-500">{design.name}</p>
+                        <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Editar diseño</h1>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">{design.name}</p>
                     </div>
                 </div>
             }
@@ -77,8 +77,8 @@ export default function Edit({ design, brands, languages }) {
                 <form onSubmit={submit} encType="multipart/form-data" className="space-y-6">
 
                     {/* Dispositivo */}
-                    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                        <h2 className="mb-5 text-xs font-semibold uppercase tracking-wide text-slate-400">Dispositivo</h2>
+                    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                        <h2 className="mb-5 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Dispositivo</h2>
                         <div className="space-y-4">
                             <Field label="Marca" required error={errors.brand_name}>
                                 <Combobox
@@ -100,8 +100,8 @@ export default function Edit({ design, brands, languages }) {
                                                 onClick={() => handleTypeChange(value)}
                                                 className={`rounded-lg border py-2.5 text-sm font-semibold transition-colors ${
                                                     data.device_type === value
-                                                        ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                                                        : 'border-slate-200 bg-white text-slate-600 hover:border-indigo-300 hover:bg-slate-50'
+                                                        ? 'border-indigo-500 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300'
+                                                        : 'border-slate-200 bg-white text-slate-600 hover:border-indigo-300 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300 dark:hover:border-indigo-500'
                                                 }`}
                                             >
                                                 {label}
@@ -138,8 +138,8 @@ export default function Edit({ design, brands, languages }) {
                     </div>
 
                     {/* Diseño */}
-                    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                        <h2 className="mb-5 text-xs font-semibold uppercase tracking-wide text-slate-400">Diseño</h2>
+                    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                        <h2 className="mb-5 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Diseño</h2>
                         <div className="space-y-4">
                             <Field label="Nombre del diseño" required error={errors.name}>
                                 <input
@@ -163,15 +163,15 @@ export default function Edit({ design, brands, languages }) {
                     </div>
 
                     {/* Archivo */}
-                    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                        <h2 className="mb-5 text-xs font-semibold uppercase tracking-wide text-slate-400">Archivo</h2>
-                        <div className="rounded-lg border border-slate-100 bg-slate-50 px-4 py-3 mb-4 flex items-center gap-3">
-                            <svg className="h-5 w-5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                        <h2 className="mb-5 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Archivo</h2>
+                        <div className="rounded-lg border border-slate-100 bg-slate-50 px-4 py-3 mb-4 flex items-center gap-3 dark:border-slate-700 dark:bg-slate-900/50">
+                            <svg className="h-5 w-5 text-slate-400 shrink-0 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
                             <div>
-                                <p className="text-sm font-medium text-slate-700">{design.file_name}</p>
-                                <p className="text-xs text-slate-400">Archivo actual · deja en blanco para mantenerlo</p>
+                                <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{design.file_name}</p>
+                                <p className="text-xs text-slate-400 dark:text-slate-500">Archivo actual · deja en blanco para mantenerlo</p>
                             </div>
                         </div>
                         <Field label="Reemplazar archivo" error={errors.file} hint="PDF, AI, EPS, PNG, JPG, SVG, ZIP — máximo 50 MB">

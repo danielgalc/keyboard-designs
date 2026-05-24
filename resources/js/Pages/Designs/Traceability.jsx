@@ -167,8 +167,9 @@ export default function Traceability({ design, printer, settingLogs, verificatio
                                     : link.url ? 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
                                     : 'cursor-default text-slate-300'
                                 }`}
-                                dangerouslySetInnerHTML={{ __html: link.label }}
-                            />
+                            >
+                                {link.label.replace(/&laquo;/g, '«').replace(/&raquo;/g, '»')}
+                            </button>
                         ))}
                     </div>
                 )}

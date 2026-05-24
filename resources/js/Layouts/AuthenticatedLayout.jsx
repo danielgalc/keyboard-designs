@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 function NavItem({ href, active, children }) {
     return (
@@ -19,9 +19,17 @@ function NavItem({ href, active, children }) {
 export default function AuthenticatedLayout({ header, children }) {
     const { auth } = usePage().props;
     const [menuOpen, setMenuOpen] = useState(false);
+    const [dark, setDark] = useState(() => typeof window !== 'undefined' && localStorage.getItem('theme') === 'dark');
+
+    const toggleTheme = () => {
+        const next = !dark;
+        setDark(next);
+        localStorage.setItem('theme', next ? 'dark' : 'light');
+        document.documentElement.classList.toggle('dark', next);
+    };
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
             {/* Top nav */}
             <nav className="bg-slate-900 shadow">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -57,8 +65,24 @@ export default function AuthenticatedLayout({ header, children }) {
                             </div>
                         </div>
 
-                        {/* User menu */}
-                        <div className="relative hidden sm:block">
+                        {/* User menu + theme toggle */}
+                        <div className="hidden sm:flex items-center gap-1">
+                            <button
+                                onClick={toggleTheme}
+                                title={dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+                                className="rounded-md p-2 text-slate-400 hover:bg-white/5 hover:text-white transition-colors"
+                            >
+                                {dark ? (
+                                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m8.66-9h-1M4.34 12h-1m15.07-6.07-.71.71M6.34 17.66l-.71.71m12.73 0-.71-.71M6.34 6.34l-.71-.71M12 7a5 5 0 100 10A5 5 0 0012 7z" />
+                                    </svg>
+                                ) : (
+                                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                                    </svg>
+                                )}
+                            </button>
+                        <div className="relative">
                             <button
                                 onClick={() => setMenuOpen(o => !o)}
                                 className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
@@ -92,6 +116,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                     </div>
                                 </>
                             )}
+                        </div>
                         </div>
 
                         {/* Mobile menu button */}
@@ -143,6 +168,9 @@ export default function AuthenticatedLayout({ header, children }) {
                         {/* Cuenta */}
                         <p className="px-3 pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Cuenta</p>
                         <Link href={route('profile.edit')} className="block rounded-md px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white">Mi perfil</Link>
+                        <button onClick={toggleTheme} className="block w-full rounded-md px-3 py-2.5 text-left text-sm text-slate-300 hover:bg-white/5 hover:text-white">
+                            {dark ? 'Modo claro' : 'Modo oscuro'}
+                        </button>
                         <Link href={route('logout')} method="post" as="button" className="block w-full rounded-md px-3 py-2.5 text-left text-sm text-slate-300 hover:bg-white/5 hover:text-white">Cerrar sesión</Link>
                     </div>
                 )}
@@ -150,7 +178,7 @@ export default function AuthenticatedLayout({ header, children }) {
 
             {/* Page header */}
             {header && (
-                <div className="border-b border-slate-200 bg-white">
+                <div className="border-b border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
                     <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
                         {header}
                     </div>

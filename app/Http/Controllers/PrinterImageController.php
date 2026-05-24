@@ -35,9 +35,10 @@ class PrinterImageController extends Controller
     {
         $path = Storage::disk('local')->path($image->file_path);
 
+        $safeName = basename(str_replace(['"', "\r", "\n"], '', $image->file_name));
         return response()->file($path, [
             'Content-Type'        => 'image/jpeg',
-            'Content-Disposition' => 'inline; filename="' . $image->file_name . '"',
+            'Content-Disposition' => 'inline; filename="' . $safeName . '"',
         ]);
     }
 

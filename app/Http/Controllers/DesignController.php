@@ -67,7 +67,7 @@ class DesignController extends Controller
             'language'    => 'nullable|string|max:20',
             'name'        => 'required|string|max:255',
             'description' => 'nullable|string|max:2000',
-            'file'        => 'required|file|max:51200',
+            'file'        => 'required|file|max:51200|mimes:pdf,ai,eps,svg,png,jpg,jpeg,tiff,tif,psd,zip',
         ]);
 
         $brand = LaptopBrand::firstOrCreate(['name' => trim($validated['brand_name'])]);
@@ -176,7 +176,7 @@ class DesignController extends Controller
             'language'    => 'nullable|string|max:20',
             'name'        => 'required|string|max:255',
             'description' => 'nullable|string|max:2000',
-            'file'        => 'nullable|file|max:51200',
+            'file'        => 'nullable|file|max:51200|mimes:pdf,ai,eps,svg,png,jpg,jpeg,tiff,tif,psd,zip',
         ]);
 
         $brand = LaptopBrand::firstOrCreate(['name' => trim($validated['brand_name'])]);
@@ -209,9 +209,10 @@ class DesignController extends Controller
     {
         $path = Storage::disk('local')->path($design->file_path);
 
+        $safeName = basename(str_replace(['"', "\r", "\n"], '', $design->file_name));
         return response()->file($path, [
             'Content-Type'        => $design->file_mime_type ?? 'application/octet-stream',
-            'Content-Disposition' => 'inline; filename="' . $design->file_name . '"',
+            'Content-Disposition' => 'inline; filename="' . $safeName . '"',
         ]);
     }
 

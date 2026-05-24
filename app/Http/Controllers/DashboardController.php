@@ -60,6 +60,13 @@ class DashboardController extends Controller
                 return $design;
             });
 
+        // Diseños sin ninguna verificación en ninguna impresora
+        $neverVerifiedCount = Design::whereDoesntHave('verifications')->count();
+        $neverVerifiedDesigns = Design::with(['laptopModel.brand'])
+            ->whereDoesntHave('verifications')
+            ->latest()
+            ->get();
+
         $recentDesigns = Design::with('laptopModel.brand')
             ->latest()
             ->limit(6)
@@ -71,12 +78,14 @@ class DashboardController extends Controller
             ->get();
 
         return Inertia::render('Dashboard', [
-            'totalDesigns'        => $totalDesigns,
-            'printerStats'        => $printerStats,
-            'needsReverification' => $needsReverification,
-            'staleDesigns'        => $staleDesigns,
-            'recentDesigns'       => $recentDesigns,
-            'recentVerifications' => $recentVerifications,
+            'totalDesigns'         => $totalDesigns,
+            'printerStats'         => $printerStats,
+            'needsReverification'  => $needsReverification,
+            'staleDesigns'         => $staleDesigns,
+            'neverVerifiedCount'   => $neverVerifiedCount,
+            'neverVerifiedDesigns' => $neverVerifiedDesigns,
+            'recentDesigns'        => $recentDesigns,
+            'recentVerifications'  => $recentVerifications,
         ]);
     }
 }

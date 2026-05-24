@@ -92,6 +92,10 @@ export default function Login({ status, canResetPassword }) {
                         </button>
                     </form>
                 </div>
+
+                <p className="mt-6 text-center text-xs text-slate-500">
+                    Built by Pulsia Itech &nbsp;&middot;&nbsp; &copy; Daniel Gallego 2026
+                </p>
             </div>
         </div>
     );

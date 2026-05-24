@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useMemo } from 'react';
 
-const inputClass = "block w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500";
+const inputClass = "block w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-500";
 
 const DEVICE_TYPES = [
     { value: 'laptop', label: 'Portátil' },
@@ -15,11 +15,11 @@ const DEVICE_TYPES = [
 function Field({ label, error, required, hint, children }) {
     return (
         <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+            <label className="block text-sm font-medium text-slate-700 mb-1.5 dark:text-slate-300">
                 {label}{required && <span className="ml-0.5 text-red-500">*</span>}
             </label>
             {children}
-            {hint && <p className="mt-1 text-xs text-slate-400">{hint}</p>}
+            {hint && <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">{hint}</p>}
             {error && <p className="mt-1.5 text-xs font-medium text-red-600">{error}</p>}
         </div>
     );
@@ -67,8 +67,8 @@ export default function Create({ brands, languages }) {
                         </svg>
                     </Link>
                     <div>
-                        <h1 className="text-lg font-semibold text-slate-900">Subir nuevo diseño</h1>
-                        <p className="text-sm text-slate-500">Añade un diseño al repositorio compartido</p>
+                        <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Subir nuevo diseño</h1>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">Añade un diseño al repositorio compartido</p>
                     </div>
                 </div>
             }
@@ -79,8 +79,8 @@ export default function Create({ brands, languages }) {
                 <form onSubmit={submit} encType="multipart/form-data" className="space-y-6">
 
                     {/* Dispositivo */}
-                    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                        <h2 className="mb-5 text-xs font-semibold uppercase tracking-wide text-slate-400">Dispositivo</h2>
+                    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                        <h2 className="mb-5 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Dispositivo</h2>
                         <div className="space-y-4">
 
                             {/* 1. Marca */}
@@ -105,8 +105,8 @@ export default function Create({ brands, languages }) {
                                                 onClick={() => handleTypeChange(value)}
                                                 className={`rounded-lg border py-2.5 text-sm font-semibold transition-colors ${
                                                     data.device_type === value
-                                                        ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                                                        : 'border-slate-200 bg-white text-slate-600 hover:border-indigo-300 hover:bg-slate-50'
+                                                        ? 'border-indigo-500 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300'
+                                                        : 'border-slate-200 bg-white text-slate-600 hover:border-indigo-300 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300 dark:hover:border-indigo-500'
                                                 }`}
                                             >
                                                 {label}
@@ -147,8 +147,8 @@ export default function Create({ brands, languages }) {
                     {/* Diseño — aparece cuando el dispositivo está completo */}
                     {data.device_type && data.model_name && (
                         <>
-                            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                                <h2 className="mb-5 text-xs font-semibold uppercase tracking-wide text-slate-400">Diseño</h2>
+                            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                                <h2 className="mb-5 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Diseño</h2>
                                 <div className="space-y-4">
                                     <Field label="Nombre del diseño" required error={errors.name}
                                         hint={data.device_type === 'laptop' ? 'Ej: Tecla fina, Tecla ancha, Retroiluminado...' : 'Ej: Frontal estándar, Frontal con lector...'}>
@@ -172,8 +172,8 @@ export default function Create({ brands, languages }) {
                                 </div>
                             </div>
 
-                            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                                <h2 className="mb-5 text-xs font-semibold uppercase tracking-wide text-slate-400">Archivo</h2>
+                            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                                <h2 className="mb-5 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Archivo</h2>
                                 <Field label="Archivo del diseño" required error={errors.file} hint="PDF, AI, EPS, PNG, JPG, SVG, ZIP — máximo 50 MB">
                                     <label className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-6 py-10 transition-colors ${data.file ? 'border-indigo-300 bg-indigo-50' : 'border-slate-200 hover:border-indigo-300 hover:bg-slate-50'}`}>
                                         <input type="file" accept=".pdf,.ai,.eps,.png,.jpg,.jpeg,.svg,.zip" className="sr-only" onChange={e => setData('file', e.target.files[0])} />
