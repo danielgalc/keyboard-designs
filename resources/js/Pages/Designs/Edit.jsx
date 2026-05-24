@@ -25,7 +25,7 @@ function Field({ label, error, required, hint, children }) {
     );
 }
 
-export default function Edit({ design, brands }) {
+export default function Edit({ design, brands, languages }) {
     const { data, setData, patch, processing, errors, progress } = useForm({
         brand_name:  design.laptop_model?.brand?.name ?? '',
         device_type: design.laptop_model?.device_type ?? 'laptop',
@@ -124,14 +124,13 @@ export default function Edit({ design, brands }) {
                             )}
 
                             {data.device_type === 'laptop' && data.model_name && (
-                                <Field label="Idioma del layout" error={errors.language} hint="Ej: PT, EN, FR, DE...">
-                                    <input
-                                        type="text"
+                                <Field label="Idioma del layout" error={errors.language} hint="Ej: PT, EN, FR, DE — opcional">
+                                    <Combobox
                                         value={data.language}
-                                        onChange={e => setData('language', e.target.value.toUpperCase())}
-                                        className={inputClass}
-                                        placeholder="PT (opcional)"
-                                        maxLength={20}
+                                        onChange={v => setData('language', v.toUpperCase())}
+                                        options={languages}
+                                        placeholder="Selecciona o escribe un idioma..."
+                                        allowNew
                                     />
                                 </Field>
                             )}
