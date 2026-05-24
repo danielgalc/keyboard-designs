@@ -730,6 +730,126 @@ function PreviewModal({ design, onClose }) {
     );
 }
 
+// ── Historial de versiones de archivo ────────────────────────────────────────
+function FileVersionsCard({ versions }) {
+    if (!versions || versions.length === 0) return null;
+    return (
+        <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="border-b border-slate-100 px-6 py-4">
+                <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Historial de versiones del archivo</h2>
+            </div>
+            <ul className="divide-y divide-slate-100">
+                {versions.map(v => (
+                    <li key={v.id} className="flex items-center justify-between gap-4 px-6 py-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                            <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-500">v{v.version_number}</span>
+                            <span className="truncate text-sm text-slate-700">{v.file_name}</span>
+                            {v.file_size && <span className="shrink-0 text-xs text-slate-400">{formatBytes(v.file_size)}</span>}
+                        </div>
+                        <div className="shrink-0 text-right">
+                            <p className="text-xs text-slate-500">Reemplazado por <span className="font-medium">{v.replaced_by?.name}</span></p>
+                            <p className="text-xs text-slate-400">{formatDate(v.created_at)}</p>
+                        </div>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+}
+
+function CommentAvatar({ user }) {
+    if (user?.avatar_url) {
+        return <img src={user.avatar_url} alt={user.name} className="h-8 w-8 rounded-full object-cover shrink-0" />;
+    }
+    return (
+        <div className="shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-600">
+            {user?.name?.charAt(0).toUpperCase()}
+        </div>
+    );
+}
+
+// ── Hilo de comentarios ───────────────────────────────────────────────────────
+function CommentsCard({ design, comments, auth }) {
+    const { data, setData, post, processing, reset, errors } = useForm({ body: '' });
+
+    const submit = (e) => {
+        e.preventDefault();
+        post(route('designs.comments.store', design.id), {
+            preserveScroll: true,
+            onSuccess: () => reset(),
+        });
+    };
+
+    const deleteComment = (commentId) => {
+        if (!confirm('¿Eliminar este comentario?')) return;
+        router.delete(route('designs.comments.destroy', [design.id, commentId]), { preserveScroll: true });
+    };
+
+    return (
+        <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="border-b border-slate-100 px-6 py-4">
+                <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Comentarios</h2>
+            </div>
+
+            {/* Lista de comentarios */}
+            <div className="divide-y divide-slate-100">
+                {comments.length === 0 && (
+                    <p className="px-6 py-6 text-center text-sm text-slate-400">Sin comentarios todavía.</p>
+                )}
+                {comments.map(c => (
+                    <div key={c.id} className="flex gap-3 px-6 py-4">
+                        <CommentAvatar user={c.user} />
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm font-semibold text-slate-800">{c.user?.name}</span>
+                                <span className="text-xs text-slate-400">{formatDate(c.created_at)}</span>
+                            </div>
+                            <p className="mt-1 text-sm text-slate-600 whitespace-pre-line">{c.body}</p>
+                        </div>
+                        {(auth.user.id === c.user_id || auth.user.role === 'admin') && (
+                            <button
+                                onClick={() => deleteComment(c.id)}
+                                className="shrink-0 self-start rounded p-1 text-slate-300 hover:text-red-500 transition-colors"
+                                aria-label="Eliminar comentario"
+                            >
+                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        )}
+                    </div>
+                ))}
+            </div>
+
+            {/* Formulario nuevo comentario */}
+            <div className="border-t border-slate-100 px-6 py-4">
+                <form onSubmit={submit} className="flex gap-3">
+                    <CommentAvatar user={auth.user} />
+                    <div className="flex-1">
+                        <textarea
+                            value={data.body}
+                            onChange={e => setData('body', e.target.value)}
+                            placeholder="Escribe un comentario..."
+                            rows={2}
+                            className="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none"
+                        />
+                        {errors.body && <p className="mt-1 text-xs text-red-600">{errors.body}</p>}
+                        <div className="mt-2 flex justify-end">
+                            <button
+                                type="submit"
+                                disabled={processing || !data.body.trim()}
+                                className="rounded-lg bg-indigo-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-40 transition-colors"
+                            >
+                                Comentar
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
 // ── Página principal ──────────────────────────────────────────────────────────
 export default function Show({ design, printers, settingLogs, allTags }) {
     const { auth, flash } = usePage().props;
@@ -890,6 +1010,12 @@ export default function Show({ design, printers, settingLogs, allTags }) {
                         ))}
                     </div>
                 </div>
+
+                {/* Historial de versiones */}
+                <FileVersionsCard versions={design.file_versions} />
+
+                {/* Comentarios */}
+                <CommentsCard design={design} comments={design.comments ?? []} auth={auth} />
 
             </div>
         </AuthenticatedLayout>

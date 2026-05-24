@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Design;
+use App\Models\DesignFileVersion;
 use App\Models\LaptopBrand;
 use App\Models\LaptopModel;
 use App\Models\Printer;
@@ -105,6 +106,8 @@ class DesignController extends Controller
             'printerSettings.updatedBy',
             'printerImages.uploader',
             'verifications' => fn ($q) => $q->with(['printer', 'user'])->latest('verified_at'),
+            'fileVersions.replacedBy',
+            'comments.user',
         ]);
 
         $printers = Printer::where('active', true)->get();
@@ -191,7 +194,17 @@ class DesignController extends Controller
         $design->description     = $validated['description'] ?? null;
 
         if ($request->hasFile('file')) {
-            Storage::disk('local')->delete($design->file_path);
+            // Archive the current file as a version before replacing
+            $nextVersion = $design->fileVersions()->max('version_number') + 1;
+            DesignFileVersion::create([
+                'design_id'      => $design->id,
+                'replaced_by'    => $request->user()->id,
+                'file_name'      => $design->file_name,
+                'file_path'      => $design->file_path,
+                'file_size'      => $design->file_size,
+                'version_number' => $nextVersion,
+            ]);
+
             $file = $request->file('file');
             $design->file_path      = $file->store('designs', 'local');
             $design->file_name      = $file->getClientOriginalName();

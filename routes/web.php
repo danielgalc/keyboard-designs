@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DesignCommentController;
 use App\Http\Controllers\DesignController;
 use App\Http\Controllers\PrinterController;
 use App\Http\Controllers\PrinterImageController;
@@ -33,6 +34,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/designs/{design}/settings/{printer}',       [PrinterSettingController::class, 'upsert'])->name('designs.settings.upsert');
     Route::post('/designs/{design}/verifications/{printer}',  [VerificationController::class, 'store'])->name('designs.verifications.store');
 
+    // Comentarios
+    Route::post('/designs/{design}/comments',            [DesignCommentController::class, 'store'])->name('designs.comments.store');
+    Route::delete('/designs/{design}/comments/{comment}', [DesignCommentController::class, 'destroy'])->name('designs.comments.destroy');
+
     // Etiquetas
     Route::get('/tags',                          [TagController::class, 'index'])->name('tags.index');
     Route::post('/designs/{design}/tags',        [TagController::class, 'sync'])->name('designs.tags.sync');
@@ -43,9 +48,11 @@ Route::middleware('auth')->group(function () {
     Route::delete('/printer-images/{image}',           [PrinterImageController::class, 'destroy'])->name('printer-images.destroy');
 
     // Perfil
-    Route::get('/profile',    [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile',  [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/profile',           [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile',         [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/avatar',   [ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
+    Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar'])->name('profile.avatar.destroy');
+    Route::delete('/profile',        [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Admin
     Route::middleware('admin')->prefix('admin')->group(function () {

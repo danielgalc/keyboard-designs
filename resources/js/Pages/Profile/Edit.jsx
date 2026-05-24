@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import DeleteUserForm from './Partials/DeleteUserForm';
+import UpdateAvatarForm from './Partials/UpdateAvatarForm';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
 
@@ -16,6 +17,9 @@ export default function Edit({ mustVerifyEmail, status }) {
         >
             <Head title="Mi perfil" />
             <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
+                <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <UpdateAvatarForm />
+                </div>
                 <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
                     <UpdateProfileInformationForm mustVerifyEmail={mustVerifyEmail} status={status} />
                 </div>

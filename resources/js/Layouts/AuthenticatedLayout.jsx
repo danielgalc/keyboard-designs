@@ -1,6 +1,20 @@
 import { Link, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 
+const ROLE_LABELS = { admin: 'Admin', operator: 'Técnico' };
+
+function UserAvatar({ user, size = 'sm' }) {
+    const dim = size === 'sm' ? 'h-7 w-7 text-xs' : 'h-8 w-8 text-sm';
+    if (user.avatar_url) {
+        return <img src={user.avatar_url} alt={user.name} className={`${dim} rounded-full object-cover shrink-0`} />;
+    }
+    return (
+        <span className={`inline-flex ${dim} shrink-0 items-center justify-center rounded-full bg-indigo-500 font-semibold text-white`}>
+            {user.name.charAt(0).toUpperCase()}
+        </span>
+    );
+}
+
 function NavItem({ href, active, children }) {
     return (
         <Link
@@ -87,9 +101,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                 onClick={() => setMenuOpen(o => !o)}
                                 className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
                             >
-                                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-indigo-500 text-xs font-semibold text-white">
-                                    {auth.user.name.charAt(0).toUpperCase()}
-                                </span>
+                                <UserAvatar user={auth.user} size="sm" />
                                 <span>{auth.user.name}</span>
                                 <svg className="h-4 w-4 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -104,7 +116,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                             <p className="text-xs text-slate-400">Conectado como</p>
                                             <p className="text-sm font-medium text-white truncate">{auth.user.email}</p>
                                             <span className={`mt-1 inline-block rounded px-1.5 py-0.5 text-xs font-medium ${auth.user.role === 'admin' ? 'bg-indigo-500/20 text-indigo-300' : 'bg-slate-600 text-slate-300'}`}>
-                                                {auth.user.role}
+                                                {ROLE_LABELS[auth.user.role] ?? auth.user.role}
                                             </span>
                                         </div>
                                         <Link href={route('profile.edit')} className="block px-4 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white">
@@ -138,15 +150,13 @@ export default function AuthenticatedLayout({ header, children }) {
                     <div className="border-t border-slate-700 px-4 pb-4 pt-2 sm:hidden space-y-0.5">
                         {/* Usuario */}
                         <div className="flex items-center gap-3 px-3 py-3 mb-1 border-b border-slate-700">
-                            <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-500 text-sm font-semibold text-white">
-                                {auth.user.name.charAt(0).toUpperCase()}
-                            </span>
+                            <UserAvatar user={auth.user} size="md" />
                             <div className="min-w-0">
                                 <p className="text-sm font-medium text-white truncate">{auth.user.name}</p>
                                 <p className="text-xs text-slate-400 truncate">{auth.user.email}</p>
                             </div>
                             <span className={`ml-auto shrink-0 rounded px-1.5 py-0.5 text-xs font-medium ${auth.user.role === 'admin' ? 'bg-indigo-500/20 text-indigo-300' : 'bg-slate-600 text-slate-300'}`}>
-                                {auth.user.role}
+                                {ROLE_LABELS[auth.user.role] ?? auth.user.role}
                             </span>
                         </div>
 
