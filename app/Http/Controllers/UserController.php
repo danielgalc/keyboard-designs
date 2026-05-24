@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\WelcomeSetPassword;
+use App\Mail\WelcomeWithPassword;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -22,18 +27,32 @@ class UserController extends Controller
         $validated = $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => 'nullable|string|min:8|confirmed',
             'role'     => 'required|in:admin,operator',
         ]);
 
-        User::create([
+        $hasPassword = ! empty($validated['password']);
+
+        $user = User::create([
             'name'     => $validated['name'],
             'email'    => $validated['email'],
-            'password' => Hash::make($validated['password']),
+            'password' => Hash::make($hasPassword ? $validated['password'] : Str::random(40)),
             'role'     => $validated['role'],
         ]);
 
-        return back()->with('success', 'Usuario creado correctamente.');
+        if ($hasPassword) {
+            Mail::to($user->email)->send(new WelcomeWithPassword($user, $validated['password']));
+        } else {
+            $plainToken = Str::random(64);
+            DB::table('password_setup_tokens')->updateOrInsert(
+                ['email' => $user->email],
+                ['token' => hash('sha256', $plainToken), 'created_at' => now()],
+            );
+            $setupUrl = route('password.setup', $plainToken);
+            Mail::to($user->email)->send(new WelcomeSetPassword($user, $setupUrl));
+        }
+
+        return back()->with('success', 'Usuario creado. Se ha enviado un email de bienvenida.');
     }
 
     public function update(Request $request, User $user)
@@ -49,7 +68,7 @@ class UserController extends Controller
         $user->email = $validated['email'];
         $user->role  = $validated['role'];
 
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $user->password = Hash::make($validated['password']);
         }
 

@@ -9,12 +9,17 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\SetupPasswordController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
     // Registro deshabilitado: los usuarios se crean solo desde el panel de admin
     Route::get('register',  fn() => abort(403))->name('register');
     Route::post('register', fn() => abort(403));
+
+    // Activación de cuenta (primer acceso sin contraseña)
+    Route::get('setup-password/{token}',  [SetupPasswordController::class, 'show'])->name('password.setup');
+    Route::post('setup-password',         [SetupPasswordController::class, 'store'])->name('password.setup.store');
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');

@@ -57,4 +57,14 @@ class Design extends Model
     {
         return $this->hasMany(PrinterImage::class)->latest();
     }
+
+    public function fileVersions(): HasMany
+    {
+        return $this->hasMany(DesignFileVersion::class)->orderByDesc('version_number');
+    }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(DesignComment::class)->latest();
+    }
 }

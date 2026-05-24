@@ -21,7 +21,7 @@ function RoleBadge({ role }) {
         </span>
     ) : (
         <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
-            Operator
+            Técnico
         </span>
     );
 }
@@ -61,17 +61,22 @@ function CreateModal({ onClose }) {
                     <Field label="Email" error={errors.email}>
                         <input type="email" value={data.email} onChange={e => setData('email', e.target.value)} className={inputClass} placeholder="correo@empresa.com" />
                     </Field>
-                    <div className="grid grid-cols-2 gap-3">
-                        <Field label="Contraseña" error={errors.password}>
-                            <input type="password" value={data.password} onChange={e => setData('password', e.target.value)} className={inputClass} placeholder="Mínimo 8 caracteres" />
-                        </Field>
-                        <Field label="Confirmar contraseña" error={errors.password_confirmation}>
-                            <input type="password" value={data.password_confirmation} onChange={e => setData('password_confirmation', e.target.value)} className={inputClass} placeholder="Repite la contraseña" />
-                        </Field>
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-3">
+                        <p className="text-xs font-medium text-slate-500">
+                            Contraseña <span className="font-normal text-slate-400">— si la dejas en blanco, el usuario recibirá un email para establecerla</span>
+                        </p>
+                        <div className="grid grid-cols-2 gap-3">
+                            <Field label="Contraseña" error={errors.password}>
+                                <input type="password" value={data.password} onChange={e => setData('password', e.target.value)} className={inputClass} placeholder="Opcional" />
+                            </Field>
+                            <Field label="Confirmar contraseña" error={errors.password_confirmation}>
+                                <input type="password" value={data.password_confirmation} onChange={e => setData('password_confirmation', e.target.value)} className={inputClass} placeholder="Opcional" />
+                            </Field>
+                        </div>
                     </div>
                     <Field label="Rol" error={errors.role}>
                         <select value={data.role} onChange={e => setData('role', e.target.value)} className={inputClass + ' cursor-pointer'}>
-                            <option value="operator">Operator — puede subir diseños y registrar verificaciones</option>
+                            <option value="operator">Técnico — puede subir diseños y registrar verificaciones</option>
                             <option value="admin">Admin — acceso completo incluido catálogo y usuarios</option>
                         </select>
                     </Field>
@@ -138,7 +143,7 @@ function EditModal({ user, onClose }) {
                     </div>
                     <Field label="Rol" error={errors.role}>
                         <select value={data.role} onChange={e => setData('role', e.target.value)} className={inputClass + ' cursor-pointer'}>
-                            <option value="operator">Operator</option>
+                            <option value="operator">Técnico</option>
                             <option value="admin">Admin</option>
                         </select>
                     </Field>

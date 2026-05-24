@@ -26,7 +26,8 @@ function Field({ label, error, required, hint, children }) {
 }
 
 export default function Edit({ design, brands, languages }) {
-    const { data, setData, patch, processing, errors, progress } = useForm({
+    const { data, setData, post, processing, errors, progress } = useForm({
+        _method:     'PATCH',
         brand_name:  design.laptop_model?.brand?.name ?? '',
         device_type: design.laptop_model?.device_type ?? 'laptop',
         model_name:  design.laptop_model?.name ?? '',
@@ -52,7 +53,7 @@ export default function Edit({ design, brands, languages }) {
 
     const submit = (e) => {
         e.preventDefault();
-        patch(route('designs.update', design.id), { forceFormData: !!data.file });
+        post(route('designs.update', design.id), { forceFormData: true });
     };
 
     return (
