@@ -19,16 +19,18 @@ class PrinterSetting extends Model
         'ink_type',
         'resolution',
         'overprint',
+        'screw_positions',
         'updated_by',
     ];
 
     protected $casts = [
-        'offset_x'  => 'float',
-        'offset_y'  => 'float',
-        'rotation'  => 'integer',
-        'scale'     => 'float',
-        'copies'    => 'integer',
-        'overprint' => 'integer',
+        'offset_x'       => 'float',
+        'offset_y'       => 'float',
+        'rotation'       => 'integer',
+        'scale'          => 'float',
+        'copies'         => 'integer',
+        'overprint'      => 'integer',
+        'screw_positions' => 'array',
     ];
 
     public function design(): BelongsTo
