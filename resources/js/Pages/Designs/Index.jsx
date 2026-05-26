@@ -84,7 +84,10 @@ function DesignRow({ design, printers, onTagClick }) {
                         </div>
                     ))}
                 </div>
-                <span className="hidden lg:block text-xs text-slate-400">{design.creator?.name}</span>
+                <div className="hidden lg:flex flex-col items-center gap-0.5">
+                    <span className="text-xs text-slate-400">Subido por</span>
+                    <span className="text-xs text-slate-500 font-medium">{design.creator?.name}</span>
+                </div>
             </div>
         </div>
     );
