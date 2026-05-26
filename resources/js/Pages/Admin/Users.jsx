@@ -96,7 +96,7 @@ function CreateModal({ onClose }) {
 }
 
 // ── Modal editar usuario ──────────────────────────────────────────────────────
-function EditModal({ user, onClose }) {
+function EditModal({ user, adminCount, onClose }) {
     const { data, setData, patch, processing, errors } = useForm({
         name: user.name,
         email: user.email,
@@ -109,6 +109,9 @@ function EditModal({ user, onClose }) {
         e.preventDefault();
         patch(route('admin.users.update', user.id), { onSuccess: onClose });
     };
+
+    // Aviso si se intenta degradar al único admin
+    const wouldRemoveLastAdmin = user.role === 'admin' && data.role === 'operator' && adminCount <= 1;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={onClose}>
@@ -142,17 +145,31 @@ function EditModal({ user, onClose }) {
                             </Field>
                         </div>
                     </div>
-                    <Field label="Rol" error={errors.role}>
-                        <select value={data.role} onChange={e => setData('role', e.target.value)} className={inputClass + ' cursor-pointer'}>
-                            <option value="operator">Técnico</option>
-                            <option value="admin">Admin</option>
-                        </select>
-                    </Field>
+                    <div>
+                        <Field label="Rol" error={errors.role}>
+                            <select value={data.role} onChange={e => setData('role', e.target.value)} className={inputClass + ' cursor-pointer'}>
+                                <option value="operator">Técnico</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </Field>
+                        {wouldRemoveLastAdmin && (
+                            <p className="mt-2 flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                                <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                Es el único administrador del sistema. No se puede degradar.
+                            </p>
+                        )}
+                    </div>
                     <div className="flex justify-end gap-3 pt-2">
                         <button type="button" onClick={onClose} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
                             Cancelar
                         </button>
-                        <button type="submit" disabled={processing} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50">
+                        <button
+                            type="submit"
+                            disabled={processing || wouldRemoveLastAdmin}
+                            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
                             {processing ? 'Guardando...' : 'Guardar cambios'}
                         </button>
                     </div>
@@ -163,7 +180,7 @@ function EditModal({ user, onClose }) {
 }
 
 // ── Página principal ──────────────────────────────────────────────────────────
-export default function Users({ users }) {
+export default function Users({ users, adminCount }) {
     const { auth, flash } = usePage().props;
     const [toast, setToast] = useState(null);
     const [showCreate, setShowCreate] = useState(false);
@@ -278,15 +295,26 @@ export default function Users({ users }) {
             </div>
 
             {showCreate && <CreateModal onClose={() => setShowCreate(false)} />}
-            {editingUser && <EditModal user={editingUser} onClose={() => setEditingUser(null)} />}
-            {confirmDelete && (
-                <ConfirmModal
-                    title="Eliminar usuario"
-                    message={`¿Eliminar a "${confirmDelete.name}"? Esta acción no se puede deshacer.`}
-                    onConfirm={() => { deleteForm.delete(route('admin.users.destroy', confirmDelete.id)); setConfirmDelete(null); }}
-                    onCancel={() => setConfirmDelete(null)}
-                />
-            )}
+            {editingUser && <EditModal user={editingUser} adminCount={adminCount} onClose={() => setEditingUser(null)} />}
+            {confirmDelete && (() => {
+                const isAdmin       = confirmDelete.role === 'admin';
+                const hasDesigns    = confirmDelete.designs_count > 0;
+                const n             = confirmDelete.designs_count;
+                const designsNote   = hasDesigns
+                    ? `Tiene ${n} diseño${n !== 1 ? 's' : ''} subido${n !== 1 ? 's' : ''} que quedarán sin autor asignado.`
+                    : null;
+                const adminNote     = isAdmin ? 'Este usuario es administrador.' : null;
+                const parts         = [adminNote, designsNote, '¿Seguro que quieres continuar? Esta acción no se puede deshacer.'].filter(Boolean);
+                return (
+                    <ConfirmModal
+                        title={`Eliminar a "${confirmDelete.name}"`}
+                        message={parts.join(' ')}
+                        confirm="Eliminar usuario"
+                        onConfirm={() => { deleteForm.delete(route('admin.users.destroy', confirmDelete.id)); setConfirmDelete(null); }}
+                        onCancel={() => setConfirmDelete(null)}
+                    />
+                );
+            })()}
         </AuthenticatedLayout>
     );
 }

@@ -17,9 +17,14 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::orderBy('name')->get(['id', 'name', 'email', 'role', 'created_at']);
+        $users = User::withCount('designs')
+            ->orderBy('name')
+            ->get(['id', 'name', 'email', 'role', 'created_at']);
 
-        return Inertia::render('Admin/Users', ['users' => $users]);
+        return Inertia::render('Admin/Users', [
+            'users'      => $users,
+            'adminCount' => $users->where('role', 'admin')->count(),
+        ]);
     }
 
     public function store(Request $request)
@@ -64,6 +69,13 @@ class UserController extends Controller
             'role'     => 'required|in:admin,operator',
         ]);
 
+        // No se puede quitar el rol admin si es el único administrador
+        if ($user->role === 'admin' && $validated['role'] === 'operator') {
+            if (User::where('role', 'admin')->count() <= 1) {
+                return back()->with('error', 'No puedes quitar el rol de administrador al único admin del sistema.');
+            }
+        }
+
         $user->name  = $validated['name'];
         $user->email = $validated['email'];
         $user->role  = $validated['role'];
@@ -79,12 +91,19 @@ class UserController extends Controller
 
     public function destroy(Request $request, User $user)
     {
+        // No puede eliminarse a sí mismo
         if ($user->id === $request->user()->id) {
             return back()->with('error', 'No puedes eliminarte a ti mismo.');
         }
 
+        // No puede eliminarse el único administrador
+        if ($user->role === 'admin' && User::where('role', 'admin')->count() <= 1) {
+            return back()->with('error', 'No puedes eliminar al único administrador del sistema.');
+        }
+
+        $name = $user->name;
         $user->delete();
 
-        return back()->with('success', 'Usuario eliminado.');
+        return back()->with('success', "Usuario \"{$name}\" eliminado.");
     }
 }
