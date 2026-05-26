@@ -41,9 +41,15 @@ class User extends Authenticatable
         return $this->avatar ? asset('storage/' . $this->avatar) : null;
     }
 
+    public function isDev(): bool
+    {
+        return $this->role === 'dev';
+    }
+
+    /** Dev puede hacer todo lo que Admin puede hacer (y más). */
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->role === 'admin' || $this->role === 'dev';
     }
 
     public function isOperator(): bool
