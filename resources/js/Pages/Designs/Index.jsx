@@ -91,7 +91,7 @@ function DesignRow({ design, printers, onTagClick }) {
 }
 
 function ModelSection({ modelName, designs, printers, onTagClick }) {
-    const [open, setOpen] = useState(true);
+    const [open, setOpen] = useState(false);
     return (
         <div className="border-b border-slate-100 last:border-0 dark:border-slate-700">
             <button onClick={() => setOpen(o => !o)} className="flex w-full items-center gap-2 py-2.5 pl-10 pr-5 text-left hover:bg-slate-50 transition-colors dark:hover:bg-slate-700">
@@ -109,7 +109,7 @@ function ModelSection({ modelName, designs, printers, onTagClick }) {
 }
 
 function DeviceTypeSection({ typeName, models, printers, onTagClick }) {
-    const [open, setOpen] = useState(true);
+    const [open, setOpen] = useState(false);
     const total = Object.values(models).reduce((sum, arr) => sum + arr.length, 0);
     return (
         <div className="border-b border-slate-100 last:border-0 dark:border-slate-700">
@@ -137,7 +137,7 @@ function BrandLogo({ brandName }) {
 }
 
 function BrandSection({ brandName, deviceTypes, printers, onTagClick }) {
-    const [open, setOpen] = useState(true);
+    const [open, setOpen] = useState(false);
     const total = Object.values(deviceTypes).reduce((sum, models) =>
         sum + Object.values(models).reduce((s, arr) => s + arr.length, 0), 0);
 
