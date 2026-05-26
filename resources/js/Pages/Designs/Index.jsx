@@ -46,7 +46,10 @@ function VerificationDot({ design, printer }) {
 // ── Fila de diseño ────────────────────────────────────────────────────────────
 function DesignRow({ design, printers, onTagClick }) {
     return (
-        <div className="flex items-center justify-between py-2.5 pl-14 pr-5 hover:bg-slate-50 group border-b border-slate-100 last:border-0 dark:border-slate-700 dark:hover:bg-slate-700">
+        <div
+            onClick={() => router.visit(route('designs.show', design.id))}
+            className="flex items-center justify-between py-2.5 pl-14 pr-5 hover:bg-slate-50 border-b border-slate-100 last:border-0 dark:border-slate-700 dark:hover:bg-slate-700 cursor-pointer"
+        >
             <div className="flex items-center gap-4 min-w-0">
                 {design.language && (
                     <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-xs font-bold text-indigo-600 shrink-0">
@@ -61,7 +64,8 @@ function DesignRow({ design, printers, onTagClick }) {
                             {design.tags.map(tag => {
                                 const c = tagColor(tag.name);
                                 return (
-                                    <button key={tag.id} onClick={() => onTagClick(tag.name)}
+                                    <button key={tag.id}
+                                        onClick={e => { e.stopPropagation(); onTagClick(tag.name); }}
                                         className={`inline-flex items-center rounded-full ${c.bg} px-2 py-0.5 text-xs font-medium ${c.text} ${c.hover} transition-colors`}>
                                         {tag.name}
                                     </button>
@@ -81,10 +85,6 @@ function DesignRow({ design, printers, onTagClick }) {
                     ))}
                 </div>
                 <span className="hidden lg:block text-xs text-slate-400">{design.creator?.name}</span>
-                <Link href={route('designs.show', design.id)}
-                    className="text-sm font-medium text-indigo-600 hover:text-indigo-800 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                    Ver →
-                </Link>
             </div>
         </div>
     );
