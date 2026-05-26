@@ -1,3 +1,4 @@
+import ConfirmModal from '@/Components/ConfirmModal';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
@@ -21,6 +22,7 @@ function Toast({ message, onDone }) {
 
 function ModelRow({ model, brandId }) {
     const [editing, setEditing] = useState(false);
+    const [confirmDelete, setConfirmDelete] = useState(false);
     const editForm = useForm({ name: model.name });
     const deleteForm = useForm({});
 
@@ -29,13 +31,9 @@ function ModelRow({ model, brandId }) {
         editForm.patch(route('admin.models.update', model.id), { onSuccess: () => setEditing(false) });
     };
 
-    const destroy = () => {
-        if (confirm(`¿Eliminar modelo "${model.name}"? Se perderá la asociación con ${model.designs_count} diseño(s).`)) {
-            deleteForm.delete(route('admin.models.destroy', model.id));
-        }
-    };
+    const destroy = () => setConfirmDelete(true);
 
-    return (
+    return (<>
         <div className="flex items-center justify-between py-2 pl-8 pr-4 hover:bg-slate-50 border-b border-slate-100 last:border-0">
             {editing ? (
                 <form onSubmit={save} className="flex flex-1 items-center gap-2">
@@ -71,6 +69,15 @@ function ModelRow({ model, brandId }) {
                 </>
             )}
         </div>
+        {confirmDelete && (
+            <ConfirmModal
+                title="Eliminar modelo"
+                message={`¿Eliminar el modelo "${model.name}"? Se perderá la asociación con ${model.designs_count} diseño(s).`}
+                onConfirm={() => { deleteForm.delete(route('admin.models.destroy', model.id)); setConfirmDelete(false); }}
+                onCancel={() => setConfirmDelete(false)}
+            />
+        )}
+    </>
     );
 }
 
@@ -78,6 +85,7 @@ function BrandCard({ brand }) {
     const [open, setOpen] = useState(true);
     const [editingBrand, setEditingBrand] = useState(false);
     const [addingModel, setAddingModel] = useState(false);
+    const [confirmDelete, setConfirmDelete] = useState(false);
 
     const editBrandForm = useForm({ name: brand.name });
     const deleteBrandForm = useForm({});
@@ -88,11 +96,7 @@ function BrandCard({ brand }) {
         editBrandForm.patch(route('admin.brands.update', brand.id), { onSuccess: () => setEditingBrand(false) });
     };
 
-    const destroyBrand = () => {
-        if (confirm(`¿Eliminar la marca "${brand.name}" y todos sus modelos?`)) {
-            deleteBrandForm.delete(route('admin.brands.destroy', brand.id));
-        }
-    };
+    const destroyBrand = () => setConfirmDelete(true);
 
     const saveModel = (e) => {
         e.preventDefault();
@@ -101,7 +105,7 @@ function BrandCard({ brand }) {
         });
     };
 
-    return (
+    return (<>
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
             {/* Cabecera de marca */}
             <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-5 py-3.5">
@@ -199,6 +203,15 @@ function BrandCard({ brand }) {
                 </div>
             )}
         </div>
+        {confirmDelete && (
+            <ConfirmModal
+                title="Eliminar marca"
+                message={`¿Eliminar la marca "${brand.name}" y todos sus modelos? Esta acción no se puede deshacer.`}
+                onConfirm={() => { deleteBrandForm.delete(route('admin.brands.destroy', brand.id)); setConfirmDelete(false); }}
+                onCancel={() => setConfirmDelete(false)}
+            />
+        )}
+    </>
     );
 }
 

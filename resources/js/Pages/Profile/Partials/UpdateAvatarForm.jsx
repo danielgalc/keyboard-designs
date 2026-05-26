@@ -1,3 +1,4 @@
+import ConfirmModal from '@/Components/ConfirmModal';
 import { useForm, usePage } from '@inertiajs/react';
 import { useRef, useState } from 'react';
 
@@ -6,6 +7,7 @@ export default function UpdateAvatarForm() {
     const user = auth.user;
 
     const [preview, setPreview] = useState(null);
+    const [confirmDelete, setConfirmDelete] = useState(false);
     const fileInputRef = useRef(null);
 
     const { data, setData, post, processing, errors, progress } = useForm({ avatar: null });
@@ -31,8 +33,8 @@ export default function UpdateAvatarForm() {
     };
 
     const handleRemove = () => {
-        if (!confirm('¿Eliminar tu foto de perfil?')) return;
         deleteForm.delete(route('profile.avatar.destroy'));
+        setConfirmDelete(false);
     };
 
     const currentAvatar = preview || user.avatar_url;
@@ -94,7 +96,7 @@ export default function UpdateAvatarForm() {
                             {user.avatar_url && !preview && (
                                 <button
                                     type="button"
-                                    onClick={handleRemove}
+                                    onClick={() => setConfirmDelete(true)}
                                     disabled={deleteForm.processing}
                                     className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 disabled:opacity-40 transition-colors"
                                 >
@@ -105,6 +107,15 @@ export default function UpdateAvatarForm() {
                     </form>
                 </div>
             </div>
+
+            {confirmDelete && (
+                <ConfirmModal
+                    title="Eliminar foto de perfil"
+                    message="¿Seguro que quieres eliminar tu foto de perfil? Se mostrará tu inicial en su lugar."
+                    onConfirm={handleRemove}
+                    onCancel={() => setConfirmDelete(false)}
+                />
+            )}
         </section>
     );
 }

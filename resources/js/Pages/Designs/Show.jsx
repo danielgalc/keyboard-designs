@@ -1,3 +1,4 @@
+import ConfirmModal from '@/Components/ConfirmModal';
 import TagInput from '@/Components/TagInput';
 import { getPrinterLogo } from '@/utils/printerLogo';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -47,6 +48,7 @@ function GalleryModal({ design, printer, onClose }) {
     const { data, setData, post, processing, reset } = useForm({ image: null });
     const deleteForm = useForm({});
     const [viewing, setViewing] = useState(null);
+    const [confirmImage, setConfirmImage] = useState(null);
 
     const submit = (e) => {
         e.preventDefault();
@@ -56,12 +58,9 @@ function GalleryModal({ design, printer, onClose }) {
         });
     };
 
-    const handleDelete = (image) => {
-        if (!confirm('¿Eliminar esta imagen?')) return;
-        deleteForm.delete(route('printer-images.destroy', image.id));
-    };
+    const handleDelete = (image) => setConfirmImage(image);
 
-    return (
+    return (<>
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={onClose}>
             <div className="flex max-h-[88vh] w-full max-w-2xl flex-col rounded-xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
                 {/* Header */}
@@ -153,6 +152,15 @@ function GalleryModal({ design, printer, onClose }) {
                 </div>
             )}
         </div>
+        {confirmImage && (
+            <ConfirmModal
+                title="Eliminar imagen"
+                message="¿Eliminar esta imagen de la galería? Esta acción no se puede deshacer."
+                onConfirm={() => { deleteForm.delete(route('printer-images.destroy', confirmImage.id)); setConfirmImage(null); }}
+                onCancel={() => setConfirmImage(null)}
+            />
+        )}
+    </>
     );
 }
 
@@ -771,6 +779,7 @@ function CommentAvatar({ user }) {
 // ── Hilo de comentarios ───────────────────────────────────────────────────────
 function CommentsCard({ design, comments, auth }) {
     const { data, setData, post, processing, reset, errors } = useForm({ body: '' });
+    const [confirmComment, setConfirmComment] = useState(null);
 
     const submit = (e) => {
         e.preventDefault();
@@ -780,12 +789,9 @@ function CommentsCard({ design, comments, auth }) {
         });
     };
 
-    const deleteComment = (commentId) => {
-        if (!confirm('¿Eliminar este comentario?')) return;
-        router.delete(route('designs.comments.destroy', [design.id, commentId]), { preserveScroll: true });
-    };
+    const deleteComment = (commentId) => setConfirmComment(commentId);
 
-    return (
+    return (<>
         <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
             <div className="border-b border-slate-100 px-6 py-4">
                 <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Comentarios</h2>
@@ -847,7 +853,15 @@ function CommentsCard({ design, comments, auth }) {
                 </form>
             </div>
         </div>
-    );
+        {confirmComment && (
+            <ConfirmModal
+                title="Eliminar comentario"
+                message="¿Eliminar este comentario? Esta acción no se puede deshacer."
+                onConfirm={() => { router.delete(route('designs.comments.destroy', [design.id, confirmComment]), { preserveScroll: true }); setConfirmComment(null); }}
+                onCancel={() => setConfirmComment(null)}
+            />
+        )}
+    </>);
 }
 
 // ── Página principal ──────────────────────────────────────────────────────────
@@ -855,6 +869,7 @@ export default function Show({ design, printers, settingLogs, allTags }) {
     const { auth, flash } = usePage().props;
     const [toast, setToast] = useState(null);
     const [showPreview, setShowPreview] = useState(false);
+    const [confirmDesign, setConfirmDesign] = useState(false);
     const [currentTags, setCurrentTags] = useState(design.tags?.map(t => t.name) ?? []);
     const [tagsSaving, setTagsSaving] = useState(false);
 
@@ -875,11 +890,7 @@ export default function Show({ design, printers, settingLogs, allTags }) {
         }
     }, [flash]);
 
-    const handleDelete = () => {
-        if (confirm(`¿Eliminar "${design.name}"? Esta acción no se puede deshacer.`)) {
-            router.delete(route('designs.destroy', design.id));
-        }
-    };
+    const handleDelete = () => setConfirmDesign(true);
 
     return (
         <>
@@ -1021,6 +1032,14 @@ export default function Show({ design, printers, settingLogs, allTags }) {
         </AuthenticatedLayout>
 
         {showPreview && <PreviewModal design={design} onClose={() => setShowPreview(false)} />}
+        {confirmDesign && (
+            <ConfirmModal
+                title="Eliminar diseño"
+                message={`¿Eliminar "${design.name}"? Esta acción no se puede deshacer.`}
+                onConfirm={() => { router.delete(route('designs.destroy', design.id)); setConfirmDesign(false); }}
+                onCancel={() => setConfirmDesign(false)}
+            />
+        )}
         </>
     );
 }

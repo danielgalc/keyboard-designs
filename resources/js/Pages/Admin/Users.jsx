@@ -1,3 +1,4 @@
+import ConfirmModal from '@/Components/ConfirmModal';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
@@ -167,6 +168,7 @@ export default function Users({ users }) {
     const [toast, setToast] = useState(null);
     const [showCreate, setShowCreate] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
+    const [confirmDelete, setConfirmDelete] = useState(null);
     const deleteForm = useForm({});
 
     useEffect(() => {
@@ -177,10 +179,7 @@ export default function Users({ users }) {
         }
     }, [flash]);
 
-    const handleDelete = (user) => {
-        if (!confirm(`¿Eliminar al usuario "${user.name}"? Esta acción no se puede deshacer.`)) return;
-        deleteForm.delete(route('admin.users.destroy', user.id));
-    };
+    const handleDelete = (user) => setConfirmDelete(user);
 
     const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('es-ES', {
         day: '2-digit', month: 'short', year: 'numeric',
@@ -280,6 +279,14 @@ export default function Users({ users }) {
 
             {showCreate && <CreateModal onClose={() => setShowCreate(false)} />}
             {editingUser && <EditModal user={editingUser} onClose={() => setEditingUser(null)} />}
+            {confirmDelete && (
+                <ConfirmModal
+                    title="Eliminar usuario"
+                    message={`¿Eliminar a "${confirmDelete.name}"? Esta acción no se puede deshacer.`}
+                    onConfirm={() => { deleteForm.delete(route('admin.users.destroy', confirmDelete.id)); setConfirmDelete(null); }}
+                    onCancel={() => setConfirmDelete(null)}
+                />
+            )}
         </AuthenticatedLayout>
     );
 }
