@@ -90,8 +90,9 @@ function DesignRow({ design, printers, onTagClick }) {
     );
 }
 
-function ModelSection({ modelName, designs, printers, onTagClick }) {
+function ModelSection({ modelName, designs, printers, onTagClick, expanded }) {
     const [open, setOpen] = useState(false);
+    useEffect(() => { setOpen(expanded); }, [expanded]);
     return (
         <div className="border-b border-slate-100 last:border-0 dark:border-slate-700">
             <button onClick={() => setOpen(o => !o)} className="flex w-full items-center gap-2 py-2.5 pl-10 pr-5 text-left hover:bg-slate-50 transition-colors dark:hover:bg-slate-700">
@@ -108,8 +109,9 @@ function ModelSection({ modelName, designs, printers, onTagClick }) {
     );
 }
 
-function DeviceTypeSection({ typeName, models, printers, onTagClick }) {
+function DeviceTypeSection({ typeName, models, printers, onTagClick, expanded }) {
     const [open, setOpen] = useState(false);
+    useEffect(() => { setOpen(expanded); }, [expanded]);
     const total = Object.values(models).reduce((sum, arr) => sum + arr.length, 0);
     return (
         <div className="border-b border-slate-100 last:border-0 dark:border-slate-700">
@@ -123,7 +125,7 @@ function DeviceTypeSection({ typeName, models, printers, onTagClick }) {
                 </span>
             </button>
             {open && Object.entries(models).map(([modelName, designs]) => (
-                <ModelSection key={modelName} modelName={modelName} designs={designs} printers={printers} onTagClick={onTagClick} />
+                <ModelSection key={modelName} modelName={modelName} designs={designs} printers={printers} onTagClick={onTagClick} expanded={expanded} />
             ))}
         </div>
     );
@@ -136,8 +138,9 @@ function BrandLogo({ brandName }) {
     return <img src={src} alt={brandName} onError={() => setError(true)} className="h-6 w-auto object-contain" />;
 }
 
-function BrandSection({ brandName, deviceTypes, printers, onTagClick }) {
+function BrandSection({ brandName, deviceTypes, printers, onTagClick, expanded }) {
     const [open, setOpen] = useState(false);
+    useEffect(() => { setOpen(expanded); }, [expanded]);
     const total = Object.values(deviceTypes).reduce((sum, models) =>
         sum + Object.values(models).reduce((s, arr) => s + arr.length, 0), 0);
 
@@ -155,7 +158,7 @@ function BrandSection({ brandName, deviceTypes, printers, onTagClick }) {
             </button>
             {open && Object.entries(deviceTypes).map(([typeKey, models]) => (
                 <DeviceTypeSection key={typeKey} typeName={DEVICE_TYPE_LABELS[typeKey] ?? typeKey}
-                    models={models} printers={printers} onTagClick={onTagClick} />
+                    models={models} printers={printers} onTagClick={onTagClick} expanded={expanded} />
             ))}
         </div>
     );
@@ -399,6 +402,7 @@ export default function Index({ designs, printers, filters }) {
 
     const activeFiltersCount = [filterBrand, filterType, filterLang, filterStatus].filter(Boolean).length + filterTag.length;
     const clearFilters = () => { setFilterBrand(null); setFilterType(null); setFilterLang(null); setFilterStatus(null); setFilterTag([]); };
+    const hasActiveFilters = search.trim() !== '' || activeFiltersCount > 0;
 
     return (
         <AuthenticatedLayout
@@ -562,7 +566,7 @@ export default function Index({ designs, printers, filters }) {
                             <div className="space-y-4">
                                 {Object.entries(tree).sort(([a], [b]) => a.localeCompare(b)).map(([brandName, deviceTypes]) => (
                                     <BrandSection key={brandName} brandName={brandName} deviceTypes={deviceTypes}
-                                        printers={printers} onTagClick={setSearch} />
+                                        printers={printers} onTagClick={setSearch} expanded={hasActiveFilters} />
                                 ))}
                             </div>
                         )}
