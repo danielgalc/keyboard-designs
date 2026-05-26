@@ -3,7 +3,7 @@ import TagInput from '@/Components/TagInput';
 import { getPrinterLogo } from '@/utils/printerLogo';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 function formatBytes(bytes) {
     if (!bytes) return '—';
@@ -738,6 +738,112 @@ function PreviewModal({ design, onClose }) {
     );
 }
 
+// ── Imagen de referencia ──────────────────────────────────────────────────────
+function ReferenceImageCard({ design }) {
+    const { data, setData, post, processing, errors, reset } = useForm({ image: null });
+    const deleteForm = useForm({});
+    const [viewing, setViewing] = useState(false);
+    const [confirmDelete, setConfirmDelete] = useState(false);
+    const fileInputRef = useRef(null);
+
+    const submit = (e) => {
+        e.preventDefault();
+        post(route('designs.reference-image.store', design.id), {
+            forceFormData: true,
+            onSuccess: () => { reset(); if (fileInputRef.current) fileInputRef.current.value = ''; },
+        });
+    };
+
+    const imageUrl = route('designs.reference-image.show', design.id);
+    const hasImage = !!design.reference_image;
+
+    return (<>
+        <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="border-b border-slate-100 px-6 py-4 flex items-center justify-between">
+                <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Imagen de referencia</h2>
+                {hasImage && (
+                    <button
+                        onClick={() => setConfirmDelete(true)}
+                        className="text-xs text-red-500 hover:text-red-700 transition-colors"
+                    >
+                        Eliminar
+                    </button>
+                )}
+            </div>
+
+            <div className="p-5 space-y-4">
+                {/* Imagen actual */}
+                {hasImage && (
+                    <div
+                        onClick={() => setViewing(true)}
+                        className="cursor-zoom-in overflow-hidden rounded-lg border border-slate-200 bg-slate-100"
+                    >
+                        <img
+                            src={imageUrl}
+                            alt="Imagen de referencia"
+                            className="w-full object-contain max-h-72 hover:opacity-90 transition-opacity"
+                        />
+                    </div>
+                )}
+
+                {/* Formulario subida */}
+                <form onSubmit={submit} className="flex items-center gap-3">
+                    <label className={`flex flex-1 cursor-pointer items-center gap-2 rounded-lg border-2 border-dashed px-4 py-2.5 text-sm transition-colors ${data.image ? 'border-indigo-300 bg-indigo-50 text-indigo-700' : 'border-slate-200 text-slate-500 hover:border-indigo-300 hover:bg-slate-50'}`}>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            className="sr-only"
+                            onChange={e => setData('image', e.target.files[0])}
+                        />
+                        <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        {data.image ? data.image.name : hasImage ? 'Reemplazar imagen...' : 'Seleccionar imagen de referencia...'}
+                    </label>
+                    <button
+                        type="submit"
+                        disabled={processing || !data.image}
+                        className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50 transition-colors"
+                    >
+                        {processing ? 'Subiendo...' : hasImage ? 'Reemplazar' : 'Subir'}
+                    </button>
+                </form>
+                {errors.image && <p className="text-xs text-red-600">{errors.image}</p>}
+            </div>
+        </div>
+
+        {/* Visor pantalla completa */}
+        {viewing && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4" onClick={() => setViewing(false)}>
+                <img
+                    src={imageUrl}
+                    alt="Imagen de referencia"
+                    className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain shadow-2xl"
+                    onClick={e => e.stopPropagation()}
+                />
+                <button
+                    onClick={() => setViewing(false)}
+                    className="absolute top-4 right-4 rounded-full bg-white/20 p-2 text-white hover:bg-white/30"
+                >
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        )}
+
+        {confirmDelete && (
+            <ConfirmModal
+                title="Eliminar imagen de referencia"
+                message="¿Eliminar la imagen de referencia? Esta acción no se puede deshacer."
+                onConfirm={() => { deleteForm.delete(route('designs.reference-image.destroy', design.id)); setConfirmDelete(false); }}
+                onCancel={() => setConfirmDelete(false)}
+            />
+        )}
+    </>);
+}
+
 // ── Historial de versiones de archivo ────────────────────────────────────────
 function FileVersionsCard({ versions }) {
     if (!versions || versions.length === 0) return null;
@@ -1011,6 +1117,9 @@ export default function Show({ design, printers, settingLogs, allTags }) {
                         />
                     </div>
                 </div>
+
+                {/* Imagen de referencia */}
+                <ReferenceImageCard design={design} />
 
                 {/* Impresoras */}
                 <div>

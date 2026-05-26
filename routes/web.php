@@ -4,6 +4,7 @@ use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DesignCommentController;
 use App\Http\Controllers\DesignController;
+use App\Http\Controllers\DesignReferenceImageController;
 use App\Http\Controllers\PrinterController;
 use App\Http\Controllers\PrinterImageController;
 use App\Http\Controllers\PrinterSettingController;
@@ -46,6 +47,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/designs/{design}/images/{printer}',  [PrinterImageController::class, 'store'])->name('designs.images.store');
     Route::get('/printer-images/{image}',              [PrinterImageController::class, 'show'])->name('printer-images.show');
     Route::delete('/printer-images/{image}',           [PrinterImageController::class, 'destroy'])->name('printer-images.destroy');
+
+    // Imagen de referencia del diseño
+    Route::get('/designs/{design}/reference-image',    [DesignReferenceImageController::class, 'show'])->name('designs.reference-image.show');
+    Route::post('/designs/{design}/reference-image',   [DesignReferenceImageController::class, 'store'])->name('designs.reference-image.store');
+    Route::delete('/designs/{design}/reference-image', [DesignReferenceImageController::class, 'destroy'])->name('designs.reference-image.destroy');
 
     // Perfil
     Route::get('/profile',           [ProfileController::class, 'edit'])->name('profile.edit');
