@@ -22,6 +22,7 @@ class Design extends Model
         'file_mime_type',
         'file_size',
         'created_by',
+        'reference_image',
     ];
 
     protected $casts = [

@@ -1,3 +1,4 @@
+import ConfirmModal from '@/Components/ConfirmModal';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
@@ -86,6 +87,7 @@ export default function Printers({ printers }) {
     const [toast, setToast] = useState(null);
     const [showCreate, setShowCreate] = useState(false);
     const [editingPrinter, setEditingPrinter] = useState(null);
+    const [confirmDelete, setConfirmDelete] = useState(null);
     const deleteForm = useForm({});
 
     useEffect(() => {
@@ -96,10 +98,7 @@ export default function Printers({ printers }) {
         }
     }, [flash]);
 
-    const handleDelete = (printer) => {
-        if (!confirm(`¿Eliminar la impresora "${printer.name}"? Se perderán todos sus datos de configuración asociados.`)) return;
-        deleteForm.delete(route('admin.printers.destroy', printer.id));
-    };
+    const handleDelete = (printer) => setConfirmDelete(printer);
 
     return (
         <AuthenticatedLayout
@@ -186,6 +185,14 @@ export default function Printers({ printers }) {
 
             {showCreate && <PrinterModal onClose={() => setShowCreate(false)} />}
             {editingPrinter && <PrinterModal printer={editingPrinter} onClose={() => setEditingPrinter(null)} />}
+            {confirmDelete && (
+                <ConfirmModal
+                    title="Eliminar impresora"
+                    message={`¿Eliminar la impresora "${confirmDelete.name}"? Se perderán todos sus datos de configuración asociados.`}
+                    onConfirm={() => { deleteForm.delete(route('admin.printers.destroy', confirmDelete.id)); setConfirmDelete(null); }}
+                    onCancel={() => setConfirmDelete(null)}
+                />
+            )}
         </AuthenticatedLayout>
     );
 }

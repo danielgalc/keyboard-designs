@@ -17,18 +17,26 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::orderBy('name')->get(['id', 'name', 'email', 'role', 'created_at']);
+        $users = User::withCount('designs')
+            ->orderBy('name')
+            ->get(['id', 'name', 'email', 'role', 'created_at']);
 
-        return Inertia::render('Admin/Users', ['users' => $users]);
+        return Inertia::render('Admin/Users', [
+            'users'      => $users,
+            'adminCount' => $users->where('role', 'admin')->count(),
+            'hasDev'     => $users->contains('role', 'dev'),
+        ]);
     }
 
     public function store(Request $request)
     {
+        $allowedRoles = $request->user()->isDev() ? 'required|in:admin,operator,dev' : 'required|in:admin,operator';
+
         $validated = $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users,email',
             'password' => 'nullable|string|min:8|confirmed',
-            'role'     => 'required|in:admin,operator',
+            'role'     => $allowedRoles,
         ]);
 
         $hasPassword = ! empty($validated['password']);
@@ -57,12 +65,33 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
+        $currentUser  = $request->user();
+        $allowedRoles = $currentUser->isDev() ? 'required|in:admin,operator,dev' : 'required|in:admin,operator';
+
+        // Solo un dev puede editar a otro dev
+        if ($user->isDev() && ! $currentUser->isDev()) {
+            return back()->with('error', 'No tienes permiso para editar a un usuario Dev.');
+        }
+
         $validated = $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => ['required', 'email', Rule::unique('users', 'email')->ignore($user->id)],
             'password' => 'nullable|string|min:8|confirmed',
-            'role'     => 'required|in:admin,operator',
+            'role'     => $allowedRoles,
         ]);
+
+        // No se puede quitar el rol dev
+        if ($user->isDev() && $validated['role'] !== 'dev') {
+            return back()->with('error', 'No se puede quitar el rol Dev.');
+        }
+
+        // No se puede quitar el rol admin si es el único admin y no existe ningún dev
+        if ($user->role === 'admin' && $validated['role'] !== 'admin') {
+            $hasDevUser = User::where('role', 'dev')->exists();
+            if (! $hasDevUser && User::where('role', 'admin')->count() <= 1) {
+                return back()->with('error', 'No puedes quitar el rol de administrador al único admin del sistema.');
+            }
+        }
 
         $user->name  = $validated['name'];
         $user->email = $validated['email'];
@@ -79,12 +108,27 @@ class UserController extends Controller
 
     public function destroy(Request $request, User $user)
     {
+        // No puede eliminarse a sí mismo
         if ($user->id === $request->user()->id) {
             return back()->with('error', 'No puedes eliminarte a ti mismo.');
         }
 
+        // Los usuarios Dev son indestructibles
+        if ($user->isDev()) {
+            return back()->with('error', 'Los usuarios Dev no pueden ser eliminados.');
+        }
+
+        // No puede eliminarse el único admin si no existe ningún dev
+        if ($user->role === 'admin' && User::where('role', 'admin')->count() <= 1) {
+            $hasDevUser = User::where('role', 'dev')->exists();
+            if (! $hasDevUser) {
+                return back()->with('error', 'No puedes eliminar al único administrador del sistema.');
+            }
+        }
+
+        $name = $user->name;
         $user->delete();
 
-        return back()->with('success', 'Usuario eliminado.');
+        return back()->with('success', "Usuario \"{$name}\" eliminado.");
     }
 }

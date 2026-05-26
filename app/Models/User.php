@@ -38,12 +38,18 @@ class User extends Authenticatable
 
     public function getAvatarUrlAttribute(): ?string
     {
-        return $this->avatar ? '/storage/' . $this->avatar : null;
+        return $this->avatar ? asset('storage/' . $this->avatar) : null;
     }
 
+    public function isDev(): bool
+    {
+        return $this->role === 'dev';
+    }
+
+    /** Dev puede hacer todo lo que Admin puede hacer (y más). */
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->role === 'admin' || $this->role === 'dev';
     }
 
     public function isOperator(): bool

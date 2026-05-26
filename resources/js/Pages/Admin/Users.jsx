@@ -1,3 +1,4 @@
+import ConfirmModal from '@/Components/ConfirmModal';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
@@ -15,11 +16,20 @@ function Field({ label, error, children }) {
 }
 
 function RoleBadge({ role }) {
-    return role === 'admin' ? (
+    if (role === 'dev') return (
+        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-700 ring-1 ring-amber-300">
+            <svg className="h-3 w-3 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.286 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.175 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.285-3.957a1 1 0 00-.364-1.118L2.062 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z" />
+            </svg>
+            Dev
+        </span>
+    );
+    if (role === 'admin') return (
         <span className="inline-flex items-center rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-semibold text-indigo-700">
             Admin
         </span>
-    ) : (
+    );
+    return (
         <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
             Técnico
         </span>
@@ -27,7 +37,8 @@ function RoleBadge({ role }) {
 }
 
 // ── Modal crear usuario ───────────────────────────────────────────────────────
-function CreateModal({ onClose }) {
+function CreateModal({ currentUserRole, onClose }) {
+    const isCurrentUserDev = currentUserRole === 'dev';
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
         email: '',
@@ -78,6 +89,7 @@ function CreateModal({ onClose }) {
                         <select value={data.role} onChange={e => setData('role', e.target.value)} className={inputClass + ' cursor-pointer'}>
                             <option value="operator">Técnico — puede subir diseños y registrar verificaciones</option>
                             <option value="admin">Admin — acceso completo incluido catálogo y usuarios</option>
+                            {isCurrentUserDev && <option value="dev">Dev — acceso total, inborrable</option>}
                         </select>
                     </Field>
                     <div className="flex justify-end gap-3 pt-2">
@@ -95,7 +107,7 @@ function CreateModal({ onClose }) {
 }
 
 // ── Modal editar usuario ──────────────────────────────────────────────────────
-function EditModal({ user, onClose }) {
+function EditModal({ user, adminCount, hasDev, currentUserRole, onClose }) {
     const { data, setData, patch, processing, errors } = useForm({
         name: user.name,
         email: user.email,
@@ -108,6 +120,11 @@ function EditModal({ user, onClose }) {
         e.preventDefault();
         patch(route('admin.users.update', user.id), { onSuccess: onClose });
     };
+
+    const isCurrentUserDev = currentUserRole === 'dev';
+
+    // Aviso si se intenta degradar al único admin y no hay dev
+    const wouldRemoveLastAdmin = user.role === 'admin' && data.role !== 'admin' && adminCount <= 1 && !hasDev;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={onClose}>
@@ -141,17 +158,37 @@ function EditModal({ user, onClose }) {
                             </Field>
                         </div>
                     </div>
-                    <Field label="Rol" error={errors.role}>
-                        <select value={data.role} onChange={e => setData('role', e.target.value)} className={inputClass + ' cursor-pointer'}>
-                            <option value="operator">Técnico</option>
-                            <option value="admin">Admin</option>
-                        </select>
-                    </Field>
+                    <div>
+                        <Field label="Rol" error={errors.role}>
+                            <select
+                                value={data.role}
+                                onChange={e => setData('role', e.target.value)}
+                                disabled={user.role === 'dev' && !isCurrentUserDev}
+                                className={inputClass + ' cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'}
+                            >
+                                <option value="operator">Técnico</option>
+                                <option value="admin">Admin</option>
+                                {isCurrentUserDev && <option value="dev">Dev</option>}
+                            </select>
+                        </Field>
+                        {wouldRemoveLastAdmin && (
+                            <p className="mt-2 flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                                <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                Es el único administrador del sistema. No se puede degradar.
+                            </p>
+                        )}
+                    </div>
                     <div className="flex justify-end gap-3 pt-2">
                         <button type="button" onClick={onClose} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
                             Cancelar
                         </button>
-                        <button type="submit" disabled={processing} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50">
+                        <button
+                            type="submit"
+                            disabled={processing || wouldRemoveLastAdmin}
+                            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
                             {processing ? 'Guardando...' : 'Guardar cambios'}
                         </button>
                     </div>
@@ -162,11 +199,12 @@ function EditModal({ user, onClose }) {
 }
 
 // ── Página principal ──────────────────────────────────────────────────────────
-export default function Users({ users }) {
+export default function Users({ users, adminCount, hasDev }) {
     const { auth, flash } = usePage().props;
     const [toast, setToast] = useState(null);
     const [showCreate, setShowCreate] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
+    const [confirmDelete, setConfirmDelete] = useState(null);
     const deleteForm = useForm({});
 
     useEffect(() => {
@@ -177,10 +215,7 @@ export default function Users({ users }) {
         }
     }, [flash]);
 
-    const handleDelete = (user) => {
-        if (!confirm(`¿Eliminar al usuario "${user.name}"? Esta acción no se puede deshacer.`)) return;
-        deleteForm.delete(route('admin.users.destroy', user.id));
-    };
+    const handleDelete = (user) => setConfirmDelete(user);
 
     const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('es-ES', {
         day: '2-digit', month: 'short', year: 'numeric',
@@ -255,13 +290,17 @@ export default function Users({ users }) {
                                     </td>
                                     <td className="px-5 py-3.5">
                                         <div className="flex items-center justify-end gap-2">
-                                            <button
-                                                onClick={() => setEditingUser(user)}
-                                                className="inline-flex min-h-[36px] items-center rounded-md border border-slate-200 bg-white px-3 text-sm font-medium text-indigo-600 hover:bg-slate-50 hover:text-indigo-800 transition-colors"
-                                            >
-                                                Editar
-                                            </button>
-                                            {user.id !== auth.user.id && (
+                                            {/* Editar: oculto para devs si el usuario actual no es dev */}
+                                            {(user.role !== 'dev' || auth.user.role === 'dev') && (
+                                                <button
+                                                    onClick={() => setEditingUser(user)}
+                                                    className="inline-flex min-h-[36px] items-center rounded-md border border-slate-200 bg-white px-3 text-sm font-medium text-indigo-600 hover:bg-slate-50 hover:text-indigo-800 transition-colors"
+                                                >
+                                                    Editar
+                                                </button>
+                                            )}
+                                            {/* Eliminar: oculto para devs y para uno mismo */}
+                                            {user.role !== 'dev' && user.id !== auth.user.id && (
                                                 <button
                                                     onClick={() => handleDelete(user)}
                                                     className="inline-flex min-h-[36px] items-center rounded-md border border-red-100 bg-red-50 px-3 text-sm font-medium text-red-600 hover:bg-red-100 transition-colors"
@@ -278,8 +317,27 @@ export default function Users({ users }) {
                 </div>
             </div>
 
-            {showCreate && <CreateModal onClose={() => setShowCreate(false)} />}
-            {editingUser && <EditModal user={editingUser} onClose={() => setEditingUser(null)} />}
+            {showCreate && <CreateModal currentUserRole={auth.user.role} onClose={() => setShowCreate(false)} />}
+            {editingUser && <EditModal user={editingUser} adminCount={adminCount} hasDev={hasDev} currentUserRole={auth.user.role} onClose={() => setEditingUser(null)} />}
+            {confirmDelete && (() => {
+                const isAdmin       = confirmDelete.role === 'admin';
+                const hasDesigns    = confirmDelete.designs_count > 0;
+                const n             = confirmDelete.designs_count;
+                const designsNote   = hasDesigns
+                    ? `Tiene ${n} diseño${n !== 1 ? 's' : ''} subido${n !== 1 ? 's' : ''} que quedarán sin autor asignado.`
+                    : null;
+                const adminNote     = isAdmin ? 'Este usuario es administrador.' : null;
+                const parts         = [adminNote, designsNote, '¿Seguro que quieres continuar? Esta acción no se puede deshacer.'].filter(Boolean);
+                return (
+                    <ConfirmModal
+                        title={`Eliminar a "${confirmDelete.name}"`}
+                        message={parts.join(' ')}
+                        confirm="Eliminar usuario"
+                        onConfirm={() => { deleteForm.delete(route('admin.users.destroy', confirmDelete.id)); setConfirmDelete(null); }}
+                        onCancel={() => setConfirmDelete(null)}
+                    />
+                );
+            })()}
         </AuthenticatedLayout>
     );
 }

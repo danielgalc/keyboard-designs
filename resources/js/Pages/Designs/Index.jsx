@@ -46,7 +46,10 @@ function VerificationDot({ design, printer }) {
 // ── Fila de diseño ────────────────────────────────────────────────────────────
 function DesignRow({ design, printers, onTagClick }) {
     return (
-        <div className="flex items-center justify-between py-2.5 pl-14 pr-5 hover:bg-slate-50 group border-b border-slate-100 last:border-0 dark:border-slate-700 dark:hover:bg-slate-700">
+        <div
+            onClick={() => router.visit(route('designs.show', design.id))}
+            className="flex items-center justify-between py-2.5 pl-14 pr-5 hover:bg-slate-50 border-b border-slate-100 last:border-0 dark:border-slate-700 dark:hover:bg-slate-700 cursor-pointer"
+        >
             <div className="flex items-center gap-4 min-w-0">
                 {design.language && (
                     <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-xs font-bold text-indigo-600 shrink-0">
@@ -61,7 +64,8 @@ function DesignRow({ design, printers, onTagClick }) {
                             {design.tags.map(tag => {
                                 const c = tagColor(tag.name);
                                 return (
-                                    <button key={tag.id} onClick={() => onTagClick(tag.name)}
+                                    <button key={tag.id}
+                                        onClick={e => { e.stopPropagation(); onTagClick(tag.name); }}
                                         className={`inline-flex items-center rounded-full ${c.bg} px-2 py-0.5 text-xs font-medium ${c.text} ${c.hover} transition-colors`}>
                                         {tag.name}
                                     </button>
@@ -80,18 +84,18 @@ function DesignRow({ design, printers, onTagClick }) {
                         </div>
                     ))}
                 </div>
-                <span className="hidden lg:block text-xs text-slate-400">{design.creator?.name}</span>
-                <Link href={route('designs.show', design.id)}
-                    className="text-sm font-medium text-indigo-600 hover:text-indigo-800 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                    Ver →
-                </Link>
+                <div className="hidden lg:flex flex-col items-center gap-0.5">
+                    <span className="text-xs text-slate-400">Subido por</span>
+                    <span className="text-xs text-slate-500 font-medium">{design.creator?.name}</span>
+                </div>
             </div>
         </div>
     );
 }
 
-function ModelSection({ modelName, designs, printers, onTagClick }) {
-    const [open, setOpen] = useState(true);
+function ModelSection({ modelName, designs, printers, onTagClick, expanded }) {
+    const [open, setOpen] = useState(false);
+    useEffect(() => { setOpen(expanded); }, [expanded]);
     return (
         <div className="border-b border-slate-100 last:border-0 dark:border-slate-700">
             <button onClick={() => setOpen(o => !o)} className="flex w-full items-center gap-2 py-2.5 pl-10 pr-5 text-left hover:bg-slate-50 transition-colors dark:hover:bg-slate-700">
@@ -108,8 +112,9 @@ function ModelSection({ modelName, designs, printers, onTagClick }) {
     );
 }
 
-function DeviceTypeSection({ typeName, models, printers, onTagClick }) {
-    const [open, setOpen] = useState(true);
+function DeviceTypeSection({ typeName, models, printers, onTagClick, expanded }) {
+    const [open, setOpen] = useState(false);
+    useEffect(() => { setOpen(expanded); }, [expanded]);
     const total = Object.values(models).reduce((sum, arr) => sum + arr.length, 0);
     return (
         <div className="border-b border-slate-100 last:border-0 dark:border-slate-700">
@@ -123,7 +128,7 @@ function DeviceTypeSection({ typeName, models, printers, onTagClick }) {
                 </span>
             </button>
             {open && Object.entries(models).map(([modelName, designs]) => (
-                <ModelSection key={modelName} modelName={modelName} designs={designs} printers={printers} onTagClick={onTagClick} />
+                <ModelSection key={modelName} modelName={modelName} designs={designs} printers={printers} onTagClick={onTagClick} expanded={expanded} />
             ))}
         </div>
     );
@@ -136,8 +141,9 @@ function BrandLogo({ brandName }) {
     return <img src={src} alt={brandName} onError={() => setError(true)} className="h-6 w-auto object-contain" />;
 }
 
-function BrandSection({ brandName, deviceTypes, printers, onTagClick }) {
-    const [open, setOpen] = useState(true);
+function BrandSection({ brandName, deviceTypes, printers, onTagClick, expanded }) {
+    const [open, setOpen] = useState(false);
+    useEffect(() => { setOpen(expanded); }, [expanded]);
     const total = Object.values(deviceTypes).reduce((sum, models) =>
         sum + Object.values(models).reduce((s, arr) => s + arr.length, 0), 0);
 
@@ -155,7 +161,7 @@ function BrandSection({ brandName, deviceTypes, printers, onTagClick }) {
             </button>
             {open && Object.entries(deviceTypes).map(([typeKey, models]) => (
                 <DeviceTypeSection key={typeKey} typeName={DEVICE_TYPE_LABELS[typeKey] ?? typeKey}
-                    models={models} printers={printers} onTagClick={onTagClick} />
+                    models={models} printers={printers} onTagClick={onTagClick} expanded={expanded} />
             ))}
         </div>
     );
@@ -399,6 +405,7 @@ export default function Index({ designs, printers, filters }) {
 
     const activeFiltersCount = [filterBrand, filterType, filterLang, filterStatus].filter(Boolean).length + filterTag.length;
     const clearFilters = () => { setFilterBrand(null); setFilterType(null); setFilterLang(null); setFilterStatus(null); setFilterTag([]); };
+    const hasActiveFilters = search.trim() !== '' || activeFiltersCount > 0;
 
     return (
         <AuthenticatedLayout
@@ -562,7 +569,7 @@ export default function Index({ designs, printers, filters }) {
                             <div className="space-y-4">
                                 {Object.entries(tree).sort(([a], [b]) => a.localeCompare(b)).map(([brandName, deviceTypes]) => (
                                     <BrandSection key={brandName} brandName={brandName} deviceTypes={deviceTypes}
-                                        printers={printers} onTagClick={setSearch} />
+                                        printers={printers} onTagClick={setSearch} expanded={hasActiveFilters} />
                                 ))}
                             </div>
                         )}

@@ -35,7 +35,7 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user() ? array_merge(
                     $request->user()->only(['id', 'name', 'email', 'role']),
                     ['avatar_url' => $request->user()->avatar
-                        ? '/storage/' . $request->user()->avatar
+                        ? asset('storage/' . $request->user()->avatar)
                         : null]
                 ) : null,
             ],

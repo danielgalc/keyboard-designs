@@ -1,8 +1,9 @@
+import ConfirmModal from '@/Components/ConfirmModal';
 import TagInput from '@/Components/TagInput';
 import { getPrinterLogo } from '@/utils/printerLogo';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 function formatBytes(bytes) {
     if (!bytes) return '—';
@@ -47,6 +48,7 @@ function GalleryModal({ design, printer, onClose }) {
     const { data, setData, post, processing, reset } = useForm({ image: null });
     const deleteForm = useForm({});
     const [viewing, setViewing] = useState(null);
+    const [confirmImage, setConfirmImage] = useState(null);
 
     const submit = (e) => {
         e.preventDefault();
@@ -56,12 +58,9 @@ function GalleryModal({ design, printer, onClose }) {
         });
     };
 
-    const handleDelete = (image) => {
-        if (!confirm('¿Eliminar esta imagen?')) return;
-        deleteForm.delete(route('printer-images.destroy', image.id));
-    };
+    const handleDelete = (image) => setConfirmImage(image);
 
-    return (
+    return (<>
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={onClose}>
             <div className="flex max-h-[88vh] w-full max-w-2xl flex-col rounded-xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
                 {/* Header */}
@@ -153,6 +152,15 @@ function GalleryModal({ design, printer, onClose }) {
                 </div>
             )}
         </div>
+        {confirmImage && (
+            <ConfirmModal
+                title="Eliminar imagen"
+                message="¿Eliminar esta imagen de la galería? Esta acción no se puede deshacer."
+                onConfirm={() => { deleteForm.delete(route('printer-images.destroy', confirmImage.id)); setConfirmImage(null); }}
+                onCancel={() => setConfirmImage(null)}
+            />
+        )}
+    </>
     );
 }
 
@@ -324,20 +332,153 @@ function TraceabilityModal({ design, printer, settingLogs, verifications, onClos
     );
 }
 
+// ── Cuadrícula de tornillos Mimaki ────────────────────────────────────────────
+const SCREW_COLS = ['A','B','C','D','E','F','G','H','I','J','K','L'];
+const SCREW_ROWS = Array.from({ length: 20 }, (_, i) => i + 1);
+
+// Huecos físicos reales de la bandeja Mimaki UJF-3042MkII EX
+const MIMAKI_HOLES = new Set([
+    // Fila 1 — borde superior
+    'A1', 'B1', 'F1', 'L1',
+    // Fila 2 — segunda fila superior
+    'D2', 'E2', 'I2',
+    // Fila 3 — borde lateral superior
+    'A3', 'L3',
+    // Fila 5 — grupo derecho
+    'K5', 'L5',
+    // Fila 8 — laterales medios
+    'A8', 'L8',
+    // Filas 11-12 — laterales centro
+    'A11', 'L11',
+    'A12', 'L12',
+    // Fila 13 — solo lado derecho
+    'L13',
+    // Fila 16 — laterales inferiores
+    'A16', 'K16', 'L16',
+    // Fila 17
+    'A17',
+    // Fila 19 — borde lateral inferior
+    'A19', 'L19',
+    // Fila 20 — borde inferior
+    'A20', 'B20', 'E20', 'G20', 'H20', 'L20',
+]);
+
+function ScrewGrid({ value = [], onChange, readOnly = false }) {
+    const toggle = (pos) => {
+        if (readOnly || !MIMAKI_HOLES.has(pos)) return;
+        onChange(value.includes(pos) ? value.filter(p => p !== pos) : [...value, pos]);
+    };
+
+    const grid = (
+        <div
+            className="flex flex-col gap-px rounded-lg border border-slate-200 p-2"
+            style={{ background: 'linear-gradient(135deg, #f0f4ff 0%, #f8fafc 100%)' }}
+        >
+            {/* Letras de columna */}
+            <div className="flex gap-px mb-0.5">
+                <div className="w-6 shrink-0" />
+                {SCREW_COLS.map(col => (
+                    <div key={col} className="flex-1 text-center text-[9px] font-bold text-slate-400 select-none">{col}</div>
+                ))}
+            </div>
+
+            {/* Filas */}
+            {SCREW_ROWS.map(row => (
+                <div key={row} className="flex items-center gap-px">
+                    <div className="w-6 shrink-0 text-right pr-1 text-[9px] font-bold text-slate-400 select-none leading-5">{row}</div>
+                    {SCREW_COLS.map(col => {
+                        const pos     = `${col}${row}`;
+                        const hasHole = MIMAKI_HOLES.has(pos);
+                        const active  = value.includes(pos);
+                        return (
+                            <button
+                                key={col}
+                                type="button"
+                                onClick={() => toggle(pos)}
+                                title={hasHole ? pos : undefined}
+                                disabled={readOnly || !hasHole}
+                                className={`flex-1 aspect-square rounded-full flex items-center justify-center transition-all duration-150 ${
+                                    !hasHole
+                                        ? 'cursor-default'
+                                        : active
+                                            ? 'bg-blue-500 shadow shadow-blue-300 scale-110 ring-2 ring-blue-200'
+                                            : readOnly
+                                                ? 'bg-white border border-slate-300 cursor-default'
+                                                : 'bg-white border border-slate-300 hover:border-blue-400 hover:bg-blue-50 cursor-pointer'
+                                }`}
+                            >
+                                {hasHole && active && (
+                                    <svg viewBox="0 0 10 10" className="w-[55%] h-[55%]">
+                                        <polygon points="5,0.8 8.8,3 8.8,7 5,9.2 1.2,7 1.2,3" fill="rgba(255,255,255,0.25)" stroke="white" strokeWidth="0.8"/>
+                                        <circle cx="5" cy="5" r="1.6" fill="white"/>
+                                    </svg>
+                                )}
+                                {hasHole && !active && (
+                                    <div className="w-[30%] h-[30%] rounded-full bg-slate-300" />
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
+            ))}
+        </div>
+    );
+
+    /* ── Vista de solo lectura (desde la tarjeta) ─────────────────────────── */
+    if (readOnly) {
+        return <div className="overflow-x-hidden">{grid}</div>;
+    }
+
+    /* ── Vista editable (desde el modal) ──────────────────────────────────── */
+    return (
+        <div className="flex flex-col h-full min-w-0">
+            {/* Cabecera */}
+            <div className="flex items-center justify-between mb-3">
+                <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Posición de topes</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">
+                        {value.length > 0 ? `${value.length} tornillo${value.length !== 1 ? 's' : ''} marcado${value.length !== 1 ? 's' : ''}` : 'Ninguno marcado'}
+                    </p>
+                </div>
+                {value.length > 0 && (
+                    <button type="button" onClick={() => onChange([])} className="text-[10px] text-slate-400 hover:text-red-500 transition-colors">
+                        Limpiar
+                    </button>
+                )}
+            </div>
+
+            <div className="overflow-x-hidden overflow-y-auto flex-1">{grid}</div>
+
+            {/* Chips de posiciones marcadas */}
+            {value.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-1">
+                    {[...value].sort().map(pos => (
+                        <span key={pos} className="inline-flex items-center gap-0.5 rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700">
+                            {pos}
+                            <button type="button" onClick={() => toggle(pos)} className="text-blue-400 hover:text-blue-700 leading-none">×</button>
+                        </span>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
 // ── Modal configuración y encuadre ────────────────────────────────────────────
 function SettingsModal({ design, printer, setting, onClose }) {
     const isMimaki = printer.name.toLowerCase().includes('mimaki');
 
     const { data, setData, post, processing, errors } = useForm({
-        offset_x:   setting?.offset_x  ?? '',
-        offset_y:   setting?.offset_y  ?? '',
-        rotation:   String(setting?.rotation ?? 0),
-        scale:      setting?.scale     ?? '100',
-        copies:     setting?.copies    ?? '1',
-        notes:      setting?.notes     ?? '',
-        ink_type:   setting?.ink_type  ?? (isMimaki ? 'Acrylic' : ''),
-        resolution: setting?.resolution ?? (isMimaki ? '600x600' : ''),
-        overprint:  setting?.overprint  ?? (isMimaki ? '2' : ''),
+        offset_x:        setting?.offset_x  ?? '',
+        offset_y:        setting?.offset_y  ?? '',
+        rotation:        String(setting?.rotation ?? 0),
+        scale:           setting?.scale     ?? '100',
+        copies:          setting?.copies    ?? '1',
+        notes:           setting?.notes     ?? '',
+        ink_type:        setting?.ink_type  ?? (isMimaki ? 'Acrylic' : ''),
+        resolution:      setting?.resolution ?? (isMimaki ? '600x600' : ''),
+        overprint:       setting?.overprint  ?? (isMimaki ? '2' : ''),
+        screw_positions: setting?.screw_positions ?? [],
     });
 
     const submit = (e) => {
@@ -355,8 +496,13 @@ function SettingsModal({ design, printer, setting, onClose }) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={onClose}>
-            <div className="w-full max-w-lg rounded-xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
-                <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+            <div
+                className={`w-full rounded-xl bg-white shadow-2xl flex flex-col ${isMimaki ? 'max-w-4xl' : 'max-w-lg'}`}
+                style={{ maxHeight: '90vh' }}
+                onClick={e => e.stopPropagation()}
+            >
+                {/* Cabecera */}
+                <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-6 py-4">
                     <div>
                         <h2 className="text-base font-semibold text-slate-900">Configuración y encuadre</h2>
                         <p className="text-sm text-slate-500">{printer.name}{printer.model && ` · ${printer.model}`}</p>
@@ -367,97 +513,94 @@ function SettingsModal({ design, printer, setting, onClose }) {
                         </svg>
                     </button>
                 </div>
-                <form onSubmit={submit} className="p-6 space-y-5">
-                    {/* Encuadre */}
-                    <div>
-                        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Encuadre</p>
-                        <div className="grid grid-cols-2 gap-3">
-                            {numField(isMimaki ? 'Escaneo (X) mm' : 'Offset X (mm)', 'offset_x')}
-                            {numField(isMimaki ? 'Alimentación (Y) mm' : 'Offset Y (mm)', 'offset_y')}
-                            <div>
-                                <label className="block text-xs font-medium text-slate-500 mb-1">Rotación</label>
-                                <div className="grid grid-cols-4 gap-1.5">
-                                    {['0', '90', '180', '270'].map(deg => (
-                                        <button
-                                            key={deg}
-                                            type="button"
-                                            onClick={() => setData('rotation', deg)}
-                                            className={`rounded-lg border py-2 text-sm font-semibold transition-colors ${
-                                                data.rotation === deg
-                                                    ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                                                    : 'border-slate-200 bg-white text-slate-600 hover:border-indigo-300 hover:bg-slate-50'
-                                            }`}
-                                        >
-                                            {deg}°
-                                        </button>
-                                    ))}
+
+                {/* Cuerpo: form + cuadrícula lado a lado en Mimaki */}
+                <form onSubmit={submit} className="flex flex-1 min-h-0">
+
+                    {/* Columna izquierda: campos */}
+                    <div className="flex-1 overflow-y-auto p-6 space-y-5 min-w-0">
+                        {/* Encuadre */}
+                        <div>
+                            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Encuadre</p>
+                            <div className="grid grid-cols-2 gap-3">
+                                {numField(isMimaki ? 'Escaneo (X) mm' : 'Offset X (mm)', 'offset_x')}
+                                {numField(isMimaki ? 'Alimentación (Y) mm' : 'Offset Y (mm)', 'offset_y')}
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-500 mb-1">Rotación</label>
+                                    <div className="grid grid-cols-4 gap-1.5">
+                                        {['0', '90', '180', '270'].map(deg => (
+                                            <button
+                                                key={deg}
+                                                type="button"
+                                                onClick={() => setData('rotation', deg)}
+                                                className={`rounded-lg border py-2 text-sm font-semibold transition-colors ${
+                                                    data.rotation === deg
+                                                        ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                                                        : 'border-slate-200 bg-white text-slate-600 hover:border-indigo-300 hover:bg-slate-50'
+                                                }`}
+                                            >
+                                                {deg}°
+                                            </button>
+                                        ))}
+                                    </div>
+                                    {errors.rotation && <p className="mt-1 text-xs text-red-600">{errors.rotation}</p>}
                                 </div>
-                                {errors.rotation && <p className="mt-1 text-xs text-red-600">{errors.rotation}</p>}
+                                {numField('Escala (%)', 'scale', { min: 0, max: 999, step: '0.1' })}
+                                {numField('Copias', 'copies', { min: 1, step: '1' })}
                             </div>
-                            {numField('Escala (%)', 'scale', { min: 0, max: 999, step: '0.1' })}
-                            {numField('Copias', 'copies', { min: 1, step: '1' })}
+                        </div>
+
+                        {/* Campos específicos Mimaki */}
+                        {isMimaki && (
+                            <div>
+                                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Configuración Mimaki</p>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-xs font-medium text-slate-500 mb-1">Tipo de tinta</label>
+                                        <input type="text" value={data.ink_type} onChange={e => setData('ink_type', e.target.value)} className={inputClass} placeholder="Acrylic" />
+                                        {errors.ink_type && <p className="mt-1 text-xs text-red-600">{errors.ink_type}</p>}
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-slate-500 mb-1">Resolución</label>
+                                        <select value={data.resolution} onChange={e => setData('resolution', e.target.value)} className={inputClass + ' cursor-pointer'}>
+                                            {RESOLUTIONS.map(r => <option key={r} value={r}>{r}</option>)}
+                                        </select>
+                                        {errors.resolution && <p className="mt-1 text-xs text-red-600">{errors.resolution}</p>}
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-slate-500 mb-1">Sobreimprimir</label>
+                                        <input type="number" min="0" step="1" value={data.overprint} onChange={e => setData('overprint', e.target.value)} className={inputClass} />
+                                        {errors.overprint && <p className="mt-1 text-xs text-red-600">{errors.overprint}</p>}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Notas */}
+                        <div>
+                            <label className="block text-xs font-medium text-slate-500 mb-1">Notas adicionales</label>
+                            <textarea rows={2} value={data.notes} onChange={e => setData('notes', e.target.value)} className={inputClass} placeholder="Observaciones..." />
+                        </div>
+
+                        <div className="flex justify-end gap-3 pt-1">
+                            <button type="button" onClick={onClose} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                                Cancelar
+                            </button>
+                            <button type="submit" disabled={processing} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50 transition-colors">
+                                {processing ? 'Guardando...' : 'Guardar'}
+                            </button>
                         </div>
                     </div>
 
-                    {/* Campos específicos Mimaki */}
+                    {/* Columna derecha: cuadrícula de tornillos (solo Mimaki) */}
                     {isMimaki && (
-                        <div>
-                            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Configuración Mimaki</p>
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="block text-xs font-medium text-slate-500 mb-1">Tipo de tinta</label>
-                                    <input
-                                        type="text"
-                                        value={data.ink_type}
-                                        onChange={e => setData('ink_type', e.target.value)}
-                                        className={inputClass}
-                                        placeholder="Acrylic"
-                                    />
-                                    {errors.ink_type && <p className="mt-1 text-xs text-red-600">{errors.ink_type}</p>}
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-slate-500 mb-1">Resolución</label>
-                                    <select
-                                        value={data.resolution}
-                                        onChange={e => setData('resolution', e.target.value)}
-                                        className={inputClass + ' cursor-pointer'}
-                                    >
-                                        {RESOLUTIONS.map(r => (
-                                            <option key={r} value={r}>{r}</option>
-                                        ))}
-                                    </select>
-                                    {errors.resolution && <p className="mt-1 text-xs text-red-600">{errors.resolution}</p>}
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-slate-500 mb-1">Sobreimprimir</label>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        step="1"
-                                        value={data.overprint}
-                                        onChange={e => setData('overprint', e.target.value)}
-                                        className={inputClass}
-                                    />
-                                    {errors.overprint && <p className="mt-1 text-xs text-red-600">{errors.overprint}</p>}
-                                </div>
-                            </div>
+                        <div className="w-96 shrink-0 border-l border-slate-100 p-4 flex flex-col overflow-y-auto">
+                            <ScrewGrid
+                                value={data.screw_positions}
+                                onChange={v => setData('screw_positions', v)}
+                            />
                         </div>
                     )}
-
-                    {/* Notas */}
-                    <div>
-                        <label className="block text-xs font-medium text-slate-500 mb-1">Notas adicionales</label>
-                        <textarea rows={2} value={data.notes} onChange={e => setData('notes', e.target.value)} className={inputClass} placeholder="Observaciones..." />
-                    </div>
-
-                    <div className="flex justify-end gap-3 pt-1">
-                        <button type="button" onClick={onClose} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
-                            Cancelar
-                        </button>
-                        <button type="submit" disabled={processing} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50 transition-colors">
-                            {processing ? 'Guardando...' : 'Guardar'}
-                        </button>
-                    </div>
                 </form>
             </div>
         </div>
@@ -545,6 +688,7 @@ function PrinterCard({ design, printer, settingLogs }) {
     const [showVerification, setShowVerification]   = useState(false);
     const [showTraceability, setShowTraceability]   = useState(false);
     const [showGallery, setShowGallery]             = useState(false);
+    const [showScrewGrid, setShowScrewGrid]         = useState(false);
 
     const imageCount = design.printer_images?.filter(i => i.printer_id === printer.id).length ?? 0;
     const traceabilityCount = (settingLogs?.[printer.id]?.length ?? 0)
@@ -606,6 +750,56 @@ function PrinterCard({ design, printer, settingLogs }) {
                                 <div className="col-span-3 sm:col-span-6 mt-1 border-t border-slate-100 pt-3">
                                     <dt className="text-xs font-medium text-slate-400">Notas</dt>
                                     <dd className="mt-0.5 text-sm text-slate-600">{setting.notes}</dd>
+                                </div>
+                            )}
+                            {isMimaki && setting.screw_positions?.length > 0 && (
+                                <div className="col-span-3 sm:col-span-6 mt-1 border-t border-slate-100 pt-3">
+                                    {/* Cabecera: label + botón toggle */}
+                                    <div className="flex items-center justify-between">
+                                        <dt className="text-xs font-medium text-slate-400">
+                                            Topes ({setting.screw_positions.length})
+                                        </dt>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowScrewGrid(v => !v)}
+                                            className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors"
+                                        >
+                                            <svg
+                                                className={`w-3.5 h-3.5 transition-transform duration-300 ${showScrewGrid ? 'rotate-180' : ''}`}
+                                                fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                            >
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                            {showScrewGrid ? 'Ocultar bandeja' : 'Mostrar en bandeja'}
+                                        </button>
+                                    </div>
+
+                                    {/* Chips compactos — siempre visibles */}
+                                    <dd className="flex flex-wrap gap-1 mt-1.5">
+                                        {[...setting.screw_positions].sort().map(pos => (
+                                            <span key={pos} className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">
+                                                <svg viewBox="0 0 10 10" className="w-2.5 h-2.5 shrink-0">
+                                                    <polygon points="5,0.8 8.8,3 8.8,7 5,9.2 1.2,7 1.2,3" fill="rgba(59,130,246,0.2)" stroke="rgb(59,130,246)" strokeWidth="0.8"/>
+                                                    <circle cx="5" cy="5" r="1.6" fill="rgb(59,130,246)"/>
+                                                </svg>
+                                                {pos}
+                                            </span>
+                                        ))}
+                                    </dd>
+
+                                    {/* Bandeja expandible — solo lectura */}
+                                    <div
+                                        className="overflow-hidden transition-all duration-300 ease-in-out"
+                                        style={{ maxHeight: showScrewGrid ? '560px' : '0px', opacity: showScrewGrid ? 1 : 0 }}
+                                    >
+                                        <div className="pt-3 max-w-xs">
+                                            <ScrewGrid
+                                                value={setting.screw_positions}
+                                                onChange={() => {}}
+                                                readOnly
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             )}
                             <div className="col-span-3 sm:col-span-6 text-xs text-slate-400 mt-1">
@@ -730,6 +924,112 @@ function PreviewModal({ design, onClose }) {
     );
 }
 
+// ── Imagen de referencia ──────────────────────────────────────────────────────
+function ReferenceImageCard({ design }) {
+    const { data, setData, post, processing, errors, reset } = useForm({ image: null });
+    const deleteForm = useForm({});
+    const [viewing, setViewing] = useState(false);
+    const [confirmDelete, setConfirmDelete] = useState(false);
+    const fileInputRef = useRef(null);
+
+    const submit = (e) => {
+        e.preventDefault();
+        post(route('designs.reference-image.store', design.id), {
+            forceFormData: true,
+            onSuccess: () => { reset(); if (fileInputRef.current) fileInputRef.current.value = ''; },
+        });
+    };
+
+    const imageUrl = route('designs.reference-image.show', design.id);
+    const hasImage = !!design.reference_image;
+
+    return (<>
+        <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="border-b border-slate-100 px-6 py-4 flex items-center justify-between">
+                <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Imagen de referencia</h2>
+                {hasImage && (
+                    <button
+                        onClick={() => setConfirmDelete(true)}
+                        className="text-xs text-red-500 hover:text-red-700 transition-colors"
+                    >
+                        Eliminar
+                    </button>
+                )}
+            </div>
+
+            <div className="p-5 space-y-4">
+                {/* Imagen actual */}
+                {hasImage && (
+                    <div
+                        onClick={() => setViewing(true)}
+                        className="cursor-zoom-in overflow-hidden rounded-lg border border-slate-200 bg-slate-100"
+                    >
+                        <img
+                            src={imageUrl}
+                            alt="Imagen de referencia"
+                            className="w-full object-contain max-h-72 hover:opacity-90 transition-opacity"
+                        />
+                    </div>
+                )}
+
+                {/* Formulario subida */}
+                <form onSubmit={submit} className="flex items-center gap-3">
+                    <label className={`flex flex-1 cursor-pointer items-center gap-2 rounded-lg border-2 border-dashed px-4 py-2.5 text-sm transition-colors ${data.image ? 'border-indigo-300 bg-indigo-50 text-indigo-700' : 'border-slate-200 text-slate-500 hover:border-indigo-300 hover:bg-slate-50'}`}>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            className="sr-only"
+                            onChange={e => setData('image', e.target.files[0])}
+                        />
+                        <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        {data.image ? data.image.name : hasImage ? 'Reemplazar imagen...' : 'Seleccionar imagen de referencia...'}
+                    </label>
+                    <button
+                        type="submit"
+                        disabled={processing || !data.image}
+                        className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50 transition-colors"
+                    >
+                        {processing ? 'Subiendo...' : hasImage ? 'Reemplazar' : 'Subir'}
+                    </button>
+                </form>
+                {errors.image && <p className="text-xs text-red-600">{errors.image}</p>}
+            </div>
+        </div>
+
+        {/* Visor pantalla completa */}
+        {viewing && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4" onClick={() => setViewing(false)}>
+                <img
+                    src={imageUrl}
+                    alt="Imagen de referencia"
+                    className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain shadow-2xl"
+                    onClick={e => e.stopPropagation()}
+                />
+                <button
+                    onClick={() => setViewing(false)}
+                    className="absolute top-4 right-4 rounded-full bg-white/20 p-2 text-white hover:bg-white/30"
+                >
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        )}
+
+        {confirmDelete && (
+            <ConfirmModal
+                title="Eliminar imagen de referencia"
+                message="¿Eliminar la imagen de referencia? Esta acción no se puede deshacer."
+                onConfirm={() => { deleteForm.delete(route('designs.reference-image.destroy', design.id)); setConfirmDelete(false); }}
+                onCancel={() => setConfirmDelete(false)}
+            />
+        )}
+    </>);
+}
+
 // ── Historial de versiones de archivo ────────────────────────────────────────
 function FileVersionsCard({ versions }) {
     if (!versions || versions.length === 0) return null;
@@ -771,6 +1071,7 @@ function CommentAvatar({ user }) {
 // ── Hilo de comentarios ───────────────────────────────────────────────────────
 function CommentsCard({ design, comments, auth }) {
     const { data, setData, post, processing, reset, errors } = useForm({ body: '' });
+    const [confirmComment, setConfirmComment] = useState(null);
 
     const submit = (e) => {
         e.preventDefault();
@@ -780,12 +1081,9 @@ function CommentsCard({ design, comments, auth }) {
         });
     };
 
-    const deleteComment = (commentId) => {
-        if (!confirm('¿Eliminar este comentario?')) return;
-        router.delete(route('designs.comments.destroy', [design.id, commentId]), { preserveScroll: true });
-    };
+    const deleteComment = (commentId) => setConfirmComment(commentId);
 
-    return (
+    return (<>
         <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
             <div className="border-b border-slate-100 px-6 py-4">
                 <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Comentarios</h2>
@@ -847,7 +1145,15 @@ function CommentsCard({ design, comments, auth }) {
                 </form>
             </div>
         </div>
-    );
+        {confirmComment && (
+            <ConfirmModal
+                title="Eliminar comentario"
+                message="¿Eliminar este comentario? Esta acción no se puede deshacer."
+                onConfirm={() => { router.delete(route('designs.comments.destroy', [design.id, confirmComment]), { preserveScroll: true }); setConfirmComment(null); }}
+                onCancel={() => setConfirmComment(null)}
+            />
+        )}
+    </>);
 }
 
 // ── Página principal ──────────────────────────────────────────────────────────
@@ -855,6 +1161,7 @@ export default function Show({ design, printers, settingLogs, allTags }) {
     const { auth, flash } = usePage().props;
     const [toast, setToast] = useState(null);
     const [showPreview, setShowPreview] = useState(false);
+    const [confirmDesign, setConfirmDesign] = useState(false);
     const [currentTags, setCurrentTags] = useState(design.tags?.map(t => t.name) ?? []);
     const [tagsSaving, setTagsSaving] = useState(false);
 
@@ -875,11 +1182,7 @@ export default function Show({ design, printers, settingLogs, allTags }) {
         }
     }, [flash]);
 
-    const handleDelete = () => {
-        if (confirm(`¿Eliminar "${design.name}"? Esta acción no se puede deshacer.`)) {
-            router.delete(route('designs.destroy', design.id));
-        }
-    };
+    const handleDelete = () => setConfirmDesign(true);
 
     return (
         <>
@@ -1001,6 +1304,9 @@ export default function Show({ design, printers, settingLogs, allTags }) {
                     </div>
                 </div>
 
+                {/* Imagen de referencia */}
+                <ReferenceImageCard design={design} />
+
                 {/* Impresoras */}
                 <div>
                     <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Datos por impresora</h2>
@@ -1021,6 +1327,14 @@ export default function Show({ design, printers, settingLogs, allTags }) {
         </AuthenticatedLayout>
 
         {showPreview && <PreviewModal design={design} onClose={() => setShowPreview(false)} />}
+        {confirmDesign && (
+            <ConfirmModal
+                title="Eliminar diseño"
+                message={`¿Eliminar "${design.name}"? Esta acción no se puede deshacer.`}
+                onConfirm={() => { router.delete(route('designs.destroy', design.id)); setConfirmDesign(false); }}
+                onCancel={() => setConfirmDesign(false)}
+            />
+        )}
         </>
     );
 }
