@@ -38,7 +38,7 @@ class User extends Authenticatable
 
     public function getAvatarUrlAttribute(): ?string
     {
-        return $this->avatar ? '/storage/' . $this->avatar : null;
+        return $this->avatar ? asset('storage/' . $this->avatar) : null;
     }
 
     public function isAdmin(): bool
