@@ -358,7 +358,7 @@ const MIMAKI_HOLES = new Set([
     // Fila 17
     'A17',
     // Fila 19 — borde lateral inferior
-    'A19', 'L19',
+    'A19', 'J19',
     // Fila 20 — borde inferior
     'A20', 'B20', 'E20', 'G20', 'H20', 'L20',
 ]);
