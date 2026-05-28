@@ -15,6 +15,8 @@ class PrinterSetting extends Model
         'rotation',
         'scale',
         'copies',
+        'height',
+        'needs_shimming',
         'notes',
         'ink_type',
         'resolution',
@@ -29,6 +31,8 @@ class PrinterSetting extends Model
         'rotation'       => 'integer',
         'scale'          => 'float',
         'copies'         => 'integer',
+        'height'         => 'float',
+        'needs_shimming' => 'boolean',
         'overprint'      => 'integer',
         'screw_positions' => 'array',
     ];

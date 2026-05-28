@@ -6,6 +6,9 @@ return [
         resource_path('views'),
     ],
 
-    'compiled' => 'D:\\keyout\\storage\\framework\\views',
+    'compiled' => env(
+        'VIEW_COMPILED_PATH',
+        realpath(storage_path('framework/views')),
+    ),
 
 ];

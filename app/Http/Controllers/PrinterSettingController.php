@@ -12,6 +12,7 @@ class PrinterSettingController extends Controller
     // Campos de configuración que se registran en el log
     private const TRACKED_FIELDS = [
         'offset_x', 'offset_y', 'rotation', 'scale', 'copies',
+        'height', 'needs_shimming',
         'notes', 'ink_type', 'resolution', 'overprint',
     ];
 
@@ -23,6 +24,8 @@ class PrinterSettingController extends Controller
             'rotation'          => 'nullable|integer|in:0,90,180,270',
             'scale'             => 'nullable|numeric|min:0|max:999',
             'copies'            => 'nullable|integer|min:1',
+            'height'            => 'nullable|numeric|min:0',
+            'needs_shimming'    => 'nullable|boolean',
             'notes'             => 'nullable|string|max:1000',
             'ink_type'          => 'nullable|string|max:100',
             'resolution'        => 'nullable|in:600x600,600x900,600x1200,1200x1200',

@@ -9,7 +9,9 @@ use App\Models\LaptopModel;
 use App\Models\Printer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
+use ZipArchive;
 
 class DesignController extends Controller
 {
@@ -23,6 +25,7 @@ class DesignController extends Controller
                 'tags',
                 'printerSettings',
                 'verifications' => fn ($q) => $q->with(['printer', 'user'])->latest('verified_at'),
+                'compositionGroups.designs:id,name',
             ])
             ->when($search, function ($q) use ($search) {
                 $terms = array_values(array_filter(array_map('trim', explode(' ', $search))));
@@ -108,9 +111,16 @@ class DesignController extends Controller
             'verifications' => fn ($q) => $q->with(['printer', 'user'])->latest('verified_at'),
             'fileVersions.replacedBy',
             'comments.user',
+            'compositionGroups.designs:id,name,laptop_model_id',
         ]);
 
         $printers = Printer::where('active', true)->get();
+
+        // Diseños del mismo modelo (para vincular composiciones)
+        $modelDesigns = Design::where('laptop_model_id', $design->laptop_model_id)
+            ->where('id', '!=', $design->id)
+            ->orderBy('name')
+            ->get(['id', 'name', 'language']);
 
         // Logs de configuración agrupados por impresora
         $settingLogs = \App\Models\PrinterSettingLog::with('user')
@@ -122,10 +132,11 @@ class DesignController extends Controller
         $allTags = \App\Models\Tag::orderBy('name')->get(['id', 'name']);
 
         return Inertia::render('Designs/Show', [
-            'design'      => $design,
-            'printers'    => $printers,
-            'settingLogs' => $settingLogs,
-            'allTags'     => $allTags,
+            'design'       => $design,
+            'printers'     => $printers,
+            'settingLogs'  => $settingLogs,
+            'allTags'      => $allTags,
+            'modelDesigns' => $modelDesigns,
         ]);
     }
 
@@ -232,6 +243,42 @@ class DesignController extends Controller
     public function download(Design $design)
     {
         return Storage::disk('local')->download($design->file_path, $design->file_name);
+    }
+
+    public function downloadComposed(Design $design)
+    {
+        $design->load('compositionGroups.designs', 'laptopModel.brand');
+
+        $allDesigns = collect([$design]);
+        foreach ($design->compositionGroups as $group) {
+            foreach ($group->designs as $sibling) {
+                if ($sibling->id !== $design->id) {
+                    $allDesigns->push($sibling);
+                }
+            }
+        }
+        $allDesigns = $allDesigns->unique('id');
+
+        $zip     = new ZipArchive();
+        $tmpFile = tempnam(sys_get_temp_dir(), 'composed_');
+        $zip->open($tmpFile, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+
+        foreach ($allDesigns as $d) {
+            $filePath = Storage::disk('local')->path($d->file_path);
+            if (file_exists($filePath)) {
+                $ext      = pathinfo($d->file_name, PATHINFO_EXTENSION);
+                $zipEntry = Str::slug($d->name) . ($ext ? ".{$ext}" : '');
+                $zip->addFile($filePath, $zipEntry);
+            }
+        }
+
+        $zip->close();
+
+        $brand   = $design->laptopModel?->brand?->name ?? '';
+        $model   = $design->laptopModel?->name ?? '';
+        $zipName = Str::slug(implode(' ', array_filter([$brand, $model, $design->name]))) . '.zip';
+
+        return response()->download($tmpFile, $zipName)->deleteFileAfterSend(true);
     }
 
     public function destroy(Design $design)

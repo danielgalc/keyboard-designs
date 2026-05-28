@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\CompositionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DesignCommentController;
 use App\Http\Controllers\DesignController;
@@ -31,9 +32,14 @@ Route::middleware('auth')->group(function () {
     Route::patch('/designs/{design}',                         [DesignController::class, 'update'])->name('designs.update');
     Route::get('/designs/{design}/preview',                   [DesignController::class, 'preview'])->name('designs.preview');
     Route::get('/designs/{design}/download',                  [DesignController::class, 'download'])->name('designs.download');
+    Route::get('/designs/{design}/download-composed',         [DesignController::class, 'downloadComposed'])->name('designs.download-composed');
     Route::delete('/designs/{design}',                        [DesignController::class, 'destroy'])->name('designs.destroy');
     Route::post('/designs/{design}/settings/{printer}',       [PrinterSettingController::class, 'upsert'])->name('designs.settings.upsert');
     Route::post('/designs/{design}/verifications/{printer}',  [VerificationController::class, 'store'])->name('designs.verifications.store');
+
+    // Composiciones Rasterlink
+    Route::post('/compositions',                           [CompositionController::class, 'store'])->name('compositions.store');
+    Route::delete('/compositions/{compositionGroup}',      [CompositionController::class, 'destroy'])->name('compositions.destroy');
 
     // Comentarios
     Route::post('/designs/{design}/comments',            [DesignCommentController::class, 'store'])->name('designs.comments.store');

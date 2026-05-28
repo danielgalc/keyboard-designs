@@ -204,7 +204,7 @@ export default function AuthenticatedLayout({ header, children }) {
             )}
 
             {/* Content */}
-            <main>{children}</main>
+            <main className="overflow-x-hidden">{children}</main>
         </div>
     );
 }

@@ -1,7 +1,7 @@
 import { tagColor } from '@/utils/tagColor';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 const DEVICE_TYPE_LABELS = {
     laptop: 'Portátil',
@@ -44,12 +44,22 @@ function VerificationDot({ design, printer }) {
 }
 
 // ── Fila de diseño ────────────────────────────────────────────────────────────
-function DesignRow({ design, printers, onTagClick }) {
+function DesignRow({ design, printers, onTagClick, siblings = [], isFirst = false, isLast = false }) {
+    const isLinked = siblings.length > 0;
     return (
         <div
             onClick={() => router.visit(route('designs.show', design.id))}
-            className="flex items-center justify-between py-2.5 pl-14 pr-5 hover:bg-slate-50 border-b border-slate-100 last:border-0 dark:border-slate-700 dark:hover:bg-slate-700 cursor-pointer"
+            className="relative flex items-center justify-between py-2.5 pl-10 pr-3 sm:pl-14 sm:pr-5 hover:bg-slate-50 border-b border-slate-100 last:border-0 dark:border-slate-700 dark:hover:bg-slate-700 cursor-pointer"
         >
+            {/* Indicador de composición: barra lateral + corchete */}
+            {isLinked && (
+                <>
+                    <div className={`absolute left-0 w-0.5 bg-violet-400 ${isFirst ? 'top-1/2' : 'top-0'} ${isLast ? 'bottom-1/2' : 'bottom-0'}`} />
+                    {(isFirst || isLast) && (
+                        <div className={`absolute left-0 w-2 h-0.5 bg-violet-400 ${isFirst ? 'top-1/2' : 'bottom-1/2'}`} />
+                    )}
+                </>
+            )}
             <div className="flex items-center gap-4 min-w-0">
                 {design.language && (
                     <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-xs font-bold text-indigo-600 shrink-0">
@@ -57,7 +67,19 @@ function DesignRow({ design, printers, onTagClick }) {
                     </span>
                 )}
                 <div className="min-w-0">
-                    <p className="text-sm font-medium text-slate-700 truncate dark:text-slate-300">{design.name}</p>
+                    <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-medium text-slate-700 truncate dark:text-slate-300">{design.name}</p>
+                        {isLinked && (
+                            <span
+                                title={`Compuesto con: ${siblings.map(s => s.name).join(', ')}`}
+                                className="shrink-0 text-violet-400"
+                            >
+                                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                </svg>
+                            </span>
+                        )}
+                    </div>
                     <p className="text-xs text-slate-400 truncate mt-0.5 dark:text-slate-500">{design.file_name}</p>
                     {design.tags?.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-1.5">
@@ -96,6 +118,51 @@ function DesignRow({ design, printers, onTagClick }) {
 function ModelSection({ modelName, designs, printers, onTagClick, expanded }) {
     const [open, setOpen] = useState(false);
     useEffect(() => { setOpen(expanded); }, [expanded]);
+
+    // Para cada diseño, calcula qué hermanos del mismo modelo comparte en composición
+    const siblingsMap = useMemo(() => {
+        const map = {};
+        const designIds = new Set(designs.map(d => d.id));
+        for (const d of designs) {
+            const siblings = [];
+            for (const group of (d.composition_groups ?? [])) {
+                for (const sibling of (group.designs ?? [])) {
+                    if (sibling.id !== d.id && designIds.has(sibling.id) && !siblings.find(s => s.id === sibling.id)) {
+                        siblings.push({ id: sibling.id, name: sibling.name });
+                    }
+                }
+            }
+            if (siblings.length > 0) map[d.id] = siblings;
+        }
+        return map;
+    }, [designs]);
+
+    // Agrupa los índices de diseños vinculados para calcular isFirst/isLast
+    const positionMap = useMemo(() => {
+        const pos = {};
+        // Para cada grupo visible, recoge los índices de sus miembros en orden
+        const groupIndexes = {}; // groupId -> [indexes]
+        designs.forEach((d, i) => {
+            for (const group of (d.composition_groups ?? [])) {
+                if (!groupIndexes[group.id]) groupIndexes[group.id] = [];
+                groupIndexes[group.id].push(i);
+            }
+        });
+        // Para cada diseño, determina si es el primero/último de alguno de sus grupos locales
+        designs.forEach((d, i) => {
+            if (!siblingsMap[d.id]) return;
+            let first = false, last = false;
+            for (const group of (d.composition_groups ?? [])) {
+                const idxs = (groupIndexes[group.id] ?? []).filter(idx => siblingsMap[designs[idx].id]);
+                if (idxs.length < 2) continue;
+                if (idxs[0] === i) first = true;
+                if (idxs[idxs.length - 1] === i) last = true;
+            }
+            pos[d.id] = { isFirst: first, isLast: last };
+        });
+        return pos;
+    }, [designs, siblingsMap]);
+
     return (
         <div className="border-b border-slate-100 last:border-0 dark:border-slate-700">
             <button onClick={() => setOpen(o => !o)} className="flex w-full items-center gap-2 py-2.5 pl-10 pr-5 text-left hover:bg-slate-50 transition-colors dark:hover:bg-slate-700">
@@ -107,7 +174,17 @@ function ModelSection({ modelName, designs, printers, onTagClick, expanded }) {
                     {designs.length} {designs.length === 1 ? 'diseño' : 'diseños'}
                 </span>
             </button>
-            {open && designs.map(d => <DesignRow key={d.id} design={d} printers={printers} onTagClick={onTagClick} />)}
+            {open && designs.map(d => (
+                <DesignRow
+                    key={d.id}
+                    design={d}
+                    printers={printers}
+                    onTagClick={onTagClick}
+                    siblings={siblingsMap[d.id] ?? []}
+                    isFirst={positionMap[d.id]?.isFirst ?? false}
+                    isLast={positionMap[d.id]?.isLast ?? false}
+                />
+            ))}
         </div>
     );
 }
@@ -323,71 +400,68 @@ export default function Index({ designs, printers, filters }) {
         return () => clearTimeout(t);
     }, [search]);
 
-    // Opciones de filtro derivadas de los diseños cargados
-    const filterOptions = useMemo(() => {
-        const brands   = {};
-        const types    = {};
-        const langs    = {};
+    const isStale = (d) => d.printer_settings?.some(s => {
+        const latest = d.verifications?.find(v => v.printer_id === s.printer_id);
+        return latest && new Date(s.updated_at) > new Date(latest.verified_at);
+    });
 
-        for (const d of designs) {
-            const brand = d.laptop_model?.brand?.name ?? 'Sin marca';
-            const type  = d.laptop_model?.device_type ?? 'laptop';
-            const lang  = d.language;
-
-            brands[brand] = (brands[brand] ?? 0) + 1;
-            types[type]   = (types[type]   ?? 0) + 1;
-            if (lang) langs[lang] = (langs[lang] ?? 0) + 1;
-        }
-
-        // Tags
-        const tagMap = {};
-        for (const d of designs) {
-            for (const t of (d.tags ?? [])) {
-                tagMap[t.name] = (tagMap[t.name] ?? 0) + 1;
-            }
-        }
-
-        const verified = designs.filter(d => d.verifications?.length > 0).length;
-        const unverified = designs.filter(d => !d.verifications?.length).length;
-        const stale = designs.filter(d => {
-            return d.printer_settings?.some(s => {
-                const latest = d.verifications?.find(v => v.printer_id === s.printer_id);
-                return latest && new Date(s.updated_at) > new Date(latest.verified_at);
-            });
-        }).length;
-
-        return {
-            brands:  Object.entries(brands).sort(([a], [b]) => a.localeCompare(b)).map(([v, c]) => ({ value: v, label: v, count: c })),
-            types:   Object.entries(types).map(([v, c]) => ({ value: v, label: DEVICE_TYPE_LABELS[v] ?? v, count: c })),
-            langs:   Object.entries(langs).sort(([a], [b]) => a.localeCompare(b)).map(([v, c]) => ({ value: v, label: v, count: c })),
-            tags: Object.entries(tagMap).sort(([a], [b]) => a.localeCompare(b)).map(([v, c]) => ({ value: v, label: v, count: c })),
-            status:  [
-                { value: 'verified',   label: 'Verificados',             count: verified   },
-                { value: 'unverified', label: 'Sin verificar',           count: unverified },
-                { value: 'stale',      label: 'Pendiente re-verificar',  count: stale      },
-            ],
-        };
-    }, [designs]);
-
-    // Diseños filtrados con todos los filtros activos
-    const filteredDesigns = useMemo(() => {
-        return designs.filter(d => {
-            if (filterBrand && d.laptop_model?.brand?.name !== filterBrand) return false;
-            if (filterType  && d.laptop_model?.device_type !== filterType) return false;
-            if (filterLang  && d.language !== filterLang) return false;
-            if (filterStatus === 'verified'   && !d.verifications?.length) return false;
-            if (filterStatus === 'unverified' && d.verifications?.length)  return false;
-            if (filterTag.length > 0 && !filterTag.every(tag => d.tags?.some(t => t.name === tag))) return false;
-            if (filterStatus === 'stale') {
-                const isStale = d.printer_settings?.some(s => {
-                    const latest = d.verifications?.find(v => v.printer_id === s.printer_id);
-                    return latest && new Date(s.updated_at) > new Date(latest.verified_at);
-                });
-                if (!isStale) return false;
+    // Aplica todos los filtros activos excepto el indicado en `skip`
+    const applyFilters = useCallback((subset, skip = null) => {
+        return subset.filter(d => {
+            if (skip !== 'brand'  && filterBrand && d.laptop_model?.brand?.name !== filterBrand) return false;
+            if (skip !== 'type'   && filterType  && d.laptop_model?.device_type !== filterType)  return false;
+            if (skip !== 'lang'   && filterLang  && d.language !== filterLang)                   return false;
+            if (skip !== 'tags'   && filterTag.length > 0 && !filterTag.every(tag => d.tags?.some(t => t.name === tag))) return false;
+            if (skip !== 'status') {
+                if (filterStatus === 'verified'   && !d.verifications?.length) return false;
+                if (filterStatus === 'unverified' &&  d.verifications?.length) return false;
+                if (filterStatus === 'stale'      && !isStale(d))              return false;
             }
             return true;
         });
-    }, [designs, filterBrand, filterType, filterLang, filterStatus, filterTag]);
+    }, [filterBrand, filterType, filterLang, filterStatus, filterTag]);
+
+    // Diseños filtrados con todos los filtros activos
+    const filteredDesigns = useMemo(() => applyFilters(designs), [designs, applyFilters]);
+
+    // Opciones de filtro dinámicas: cada sección excluye su propio filtro del cálculo
+    const filterOptions = useMemo(() => {
+        const forBrands = applyFilters(designs, 'brand');
+        const forTypes  = applyFilters(designs, 'type');
+        const forLangs  = applyFilters(designs, 'lang');
+        const forTags   = applyFilters(designs, 'tags');
+        const forStatus = applyFilters(designs, 'status');
+
+        const countBy = (arr, keyFn) => {
+            const map = {};
+            for (const d of arr) {
+                const k = keyFn(d);
+                if (k != null) map[k] = (map[k] ?? 0) + 1;
+            }
+            return map;
+        };
+
+        const tagMap = {};
+        for (const d of forTags) {
+            for (const t of (d.tags ?? [])) tagMap[t.name] = (tagMap[t.name] ?? 0) + 1;
+        }
+
+        const brandCounts = countBy(forBrands, d => d.laptop_model?.brand?.name ?? 'Sin marca');
+        const typeCounts  = countBy(forTypes,  d => d.laptop_model?.device_type ?? 'laptop');
+        const langCounts  = countBy(forLangs,  d => d.language);
+
+        return {
+            brands:  Object.entries(brandCounts).sort(([a], [b]) => a.localeCompare(b)).map(([v, c]) => ({ value: v, label: v, count: c })),
+            types:   Object.entries(typeCounts).map(([v, c]) => ({ value: v, label: DEVICE_TYPE_LABELS[v] ?? v, count: c })),
+            langs:   Object.entries(langCounts).sort(([a], [b]) => a.localeCompare(b)).map(([v, c]) => ({ value: v, label: v, count: c })),
+            tags:    Object.entries(tagMap).sort(([a], [b]) => a.localeCompare(b)).map(([v, c]) => ({ value: v, label: v, count: c })),
+            status:  [
+                { value: 'verified',   label: 'Verificados',            count: forStatus.filter(d =>  d.verifications?.length).length },
+                { value: 'unverified', label: 'Sin verificar',          count: forStatus.filter(d => !d.verifications?.length).length },
+                { value: 'stale',      label: 'Pendiente re-verificar', count: forStatus.filter(isStale).length },
+            ].filter(s => s.count > 0),
+        };
+    }, [designs, applyFilters]);
 
     const tree = useMemo(() => {
         const result = {};
