@@ -23,15 +23,17 @@ const inputClass = "block w-full rounded-lg border border-slate-200 bg-white px-
 const RESOLUTIONS = ['600x600', '600x900', '600x1200', '1200x1200'];
 
 const FIELD_LABELS = {
-    offset_x:   'Escaneo X / Offset X',
-    offset_y:   'Alimentación Y / Offset Y',
-    rotation:   'Rotación',
-    scale:      'Escala',
-    copies:     'Copias',
-    notes:      'Notas',
-    ink_type:   'Tipo de tinta',
-    resolution: 'Resolución',
-    overprint:  'Sobreimprimir',
+    offset_x:       'Escaneo X / Offset X',
+    offset_y:       'Alimentación Y / Offset Y',
+    rotation:       'Rotación',
+    scale:          'Escala',
+    copies:         'Copias',
+    height:         'Altura',
+    needs_shimming: '¿Necesita calzar?',
+    notes:          'Notas',
+    ink_type:       'Tipo de tinta',
+    resolution:     'Resolución',
+    overprint:      'Sobreimprimir',
 };
 
 const PREVIEW_LIMIT = 5;
@@ -61,8 +63,8 @@ function GalleryModal({ design, printer, onClose }) {
     const handleDelete = (image) => setConfirmImage(image);
 
     return (<>
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={onClose}>
-            <div className="flex max-h-[88vh] w-full max-w-2xl flex-col rounded-xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:px-4" onClick={onClose}>
+            <div className="flex max-h-[88vh] w-full sm:max-w-2xl flex-col rounded-t-xl sm:rounded-xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 shrink-0">
                     <div>
@@ -247,8 +249,8 @@ function TraceabilityModal({ design, printer, settingLogs, verifications, onClos
     const remaining = allEvents.length - PREVIEW_LIMIT;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={onClose}>
-            <div className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:px-4" onClick={onClose}>
+            <div className="flex max-h-[88vh] w-full sm:max-w-lg flex-col rounded-t-xl sm:rounded-xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 shrink-0">
                     <div>
@@ -474,6 +476,8 @@ function SettingsModal({ design, printer, setting, onClose }) {
         rotation:        String(setting?.rotation ?? 0),
         scale:           setting?.scale     ?? '100',
         copies:          setting?.copies    ?? '1',
+        height:          setting?.height    ?? '',
+        needs_shimming:  setting?.needs_shimming ?? false,
         notes:           setting?.notes     ?? '',
         ink_type:        setting?.ink_type  ?? (isMimaki ? 'Acrylic' : ''),
         resolution:      setting?.resolution ?? (isMimaki ? '600x600' : ''),
@@ -495,10 +499,10 @@ function SettingsModal({ design, printer, setting, onClose }) {
     );
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={onClose}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:px-4" onClick={onClose}>
             <div
-                className={`w-full rounded-xl bg-white shadow-2xl flex flex-col ${isMimaki ? 'max-w-4xl' : 'max-w-lg'}`}
-                style={{ maxHeight: '90vh' }}
+                className={`w-full rounded-t-xl sm:rounded-xl bg-white shadow-2xl flex flex-col ${isMimaki ? 'sm:max-w-4xl' : 'sm:max-w-lg'}`}
+                style={{ maxHeight: '92vh' }}
                 onClick={e => e.stopPropagation()}
             >
                 {/* Cabecera */}
@@ -514,11 +518,11 @@ function SettingsModal({ design, printer, setting, onClose }) {
                     </button>
                 </div>
 
-                {/* Cuerpo: form + cuadrícula lado a lado en Mimaki */}
-                <form onSubmit={submit} className="flex flex-1 min-h-0">
+                {/* Cuerpo: form + cuadrícula lado a lado en Mimaki (apilado en móvil) */}
+                <form onSubmit={submit} className="flex flex-col sm:flex-row flex-1 min-h-0">
 
-                    {/* Columna izquierda: campos */}
-                    <div className="flex-1 overflow-y-auto p-6 space-y-5 min-w-0">
+                    {/* Campos */}
+                    <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 min-w-0">
                         {/* Encuadre */}
                         <div>
                             <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Encuadre</p>
@@ -547,6 +551,30 @@ function SettingsModal({ design, printer, setting, onClose }) {
                                 </div>
                                 {numField('Escala (%)', 'scale', { min: 0, max: 999, step: '0.1' })}
                                 {numField('Copias', 'copies', { min: 1, step: '1' })}
+                                {numField('Altura (mm)', 'height', { min: 0, step: '0.1' })}
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-500 mb-1">¿Necesita calzar?</label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setData('needs_shimming', !data.needs_shimming)}
+                                        className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                                            data.needs_shimming
+                                                ? 'border-amber-400 bg-amber-50 text-amber-700'
+                                                : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50'
+                                        }`}
+                                    >
+                                        <span className={`h-4 w-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
+                                            data.needs_shimming ? 'border-amber-500 bg-amber-500' : 'border-slate-300'
+                                        }`}>
+                                            {data.needs_shimming && (
+                                                <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            )}
+                                        </span>
+                                        {data.needs_shimming ? 'Sí, necesita calzar' : 'No necesita calzar'}
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -592,9 +620,9 @@ function SettingsModal({ design, printer, setting, onClose }) {
                         </div>
                     </div>
 
-                    {/* Columna derecha: cuadrícula de tornillos (solo Mimaki) */}
+                    {/* Cuadrícula de tornillos (solo Mimaki) */}
                     {isMimaki && (
-                        <div className="w-96 shrink-0 border-l border-slate-100 p-4 flex flex-col overflow-y-auto">
+                        <div className="border-t sm:border-t-0 sm:border-l border-slate-100 p-4 flex flex-col sm:w-80 sm:shrink-0 sm:overflow-y-auto">
                             <ScrewGrid
                                 value={data.screw_positions}
                                 onChange={v => setData('screw_positions', v)}
@@ -617,8 +645,8 @@ function VerificationModal({ design, printer, onClose }) {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={onClose}>
-            <div className="w-full max-w-md rounded-xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:px-4" onClick={onClose}>
+            <div className="w-full sm:max-w-md rounded-t-xl sm:rounded-xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
                     <div>
                         <h2 className="text-base font-semibold text-slate-900">Registrar verificación</h2>
@@ -700,6 +728,7 @@ function PrinterCard({ design, printer, settingLogs }) {
         ['Rotación', setting?.rotation != null ? `${setting.rotation}°` : null],
         ['Escala',   setting?.scale    != null ? `${setting.scale}%`    : null],
         ['Copias',   setting?.copies   != null ? String(setting.copies) : null],
+        ['Altura',   setting?.height   != null ? `${setting.height} mm` : null],
         ...(isMimaki ? [
             ['Tipo de tinta', setting?.ink_type   ?? null],
             ['Resolución',    setting?.resolution ?? null],
@@ -746,6 +775,16 @@ function PrinterCard({ design, printer, settingLogs }) {
                                     <dd className="mt-0.5 text-sm font-semibold text-slate-700">{value ?? <span className="font-normal text-slate-300">—</span>}</dd>
                                 </div>
                             ))}
+                            {setting.needs_shimming && (
+                                <div className="col-span-3 sm:col-span-6 mt-1 border-t border-slate-100 pt-3">
+                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+                                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        Necesita calzar
+                                    </span>
+                                </div>
+                            )}
                             {setting.notes && (
                                 <div className="col-span-3 sm:col-span-6 mt-1 border-t border-slate-100 pt-3">
                                     <dt className="text-xs font-medium text-slate-400">Notas</dt>
@@ -1157,7 +1196,179 @@ function CommentsCard({ design, comments, auth }) {
 }
 
 // ── Página principal ──────────────────────────────────────────────────────────
-export default function Show({ design, printers, settingLogs, allTags }) {
+// ── Sección composición Rasterlink ────────────────────────────────────────────
+function CompositionCard({ design, modelDesigns }) {
+    const [showModal, setShowModal] = useState(false);
+    const [selectedIds, setSelectedIds] = useState([]);
+    const [processing, setProcessing] = useState(false);
+
+    const groups = design.composition_groups ?? [];
+
+    // Diseños ya vinculados con este en algún grupo
+    const linkedDesignIds = new Set(
+        groups.flatMap(g => g.designs?.map(d => d.id) ?? []).filter(id => id !== design.id)
+    );
+
+    // Candidatos: diseños del mismo modelo, excluyendo los ya vinculados con nosotros en un mismo grupo
+    const candidates = modelDesigns.filter(d => !linkedDesignIds.has(d.id));
+
+    const toggleSelect = (id) =>
+        setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+
+    const handleLink = (e) => {
+        e.preventDefault();
+        setProcessing(true);
+        router.post(route('compositions.store'), { design_ids: [design.id, ...selectedIds] }, {
+            preserveScroll: true,
+            onFinish: () => setProcessing(false),
+            onSuccess: () => { setShowModal(false); setSelectedIds([]); },
+        });
+    };
+
+    const handleUnlink = (groupId) => {
+        router.delete(route('compositions.destroy', groupId), { preserveScroll: true });
+    };
+
+    return (<>
+        <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="border-b border-slate-100 px-6 py-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <svg className="h-4 w-4 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                    <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Composición</h2>
+                </div>
+                {candidates.length > 0 && (
+                    <button
+                        onClick={() => setShowModal(true)}
+                        className="inline-flex items-center gap-1 rounded-md border border-violet-200 bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-700 hover:bg-violet-100 transition-colors"
+                    >
+                        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                        Vincular diseño
+                    </button>
+                )}
+            </div>
+
+            <div className="px-6 py-4">
+                {groups.length === 0 ? (
+                    <p className="text-sm text-slate-400 italic">
+                        Sin composiciones vinculadas.
+                        {candidates.length === 0 && modelDesigns.length === 0 && ' No hay otros diseños en este modelo.'}
+                    </p>
+                ) : (
+                    <div className="space-y-2">
+                        {groups.map(group => {
+                            const siblings = group.designs?.filter(d => d.id !== design.id) ?? [];
+                            return (
+                                <div key={group.id} className="flex items-center justify-between gap-3 rounded-lg border border-violet-100 bg-violet-50 px-4 py-2.5">
+                                    <div className="flex items-center gap-2 flex-wrap min-w-0">
+                                        <svg className="h-3.5 w-3.5 text-violet-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                        </svg>
+                                        {siblings.map((s, i) => (
+                                            <span key={s.id} className="flex items-center gap-1">
+                                                {i > 0 && <span className="text-violet-300 text-xs">+</span>}
+                                                <Link
+                                                    href={route('designs.show', s.id)}
+                                                    onClick={e => e.stopPropagation()}
+                                                    className="text-sm font-medium text-violet-700 hover:text-violet-900 hover:underline truncate"
+                                                >
+                                                    {s.name}
+                                                </Link>
+                                            </span>
+                                        ))}
+                                    </div>
+                                    <button
+                                        onClick={() => handleUnlink(group.id)}
+                                        title="Eliminar composición"
+                                        className="shrink-0 rounded p-1 text-violet-300 hover:text-red-500 hover:bg-white transition-colors"
+                                    >
+                                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
+        </div>
+
+        {/* Modal de vinculación */}
+        {showModal && (
+            <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:px-4" onClick={() => setShowModal(false)}>
+                <div className="w-full sm:max-w-md rounded-t-xl sm:rounded-xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
+                    <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+                        <div>
+                            <h2 className="text-base font-semibold text-slate-900">Vincular diseño</h2>
+                            <p className="text-sm text-slate-500">Selecciona los diseños que se componen juntos en Rasterlink</p>
+                        </div>
+                        <button onClick={() => setShowModal(false)} className="rounded-md p-1 text-slate-400 hover:bg-slate-100">
+                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div className="p-6">
+                        <div className="mb-4 rounded-lg bg-violet-50 border border-violet-100 px-4 py-2.5 text-sm text-violet-800 font-medium">
+                            {design.name}
+                        </div>
+                        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Componer con...</p>
+                        <div className="space-y-1 max-h-64 overflow-y-auto">
+                            {candidates.map(d => (
+                                <button
+                                    key={d.id}
+                                    type="button"
+                                    onClick={() => toggleSelect(d.id)}
+                                    className={`flex w-full items-center gap-3 rounded-lg border px-4 py-2.5 text-sm text-left transition-colors ${
+                                        selectedIds.includes(d.id)
+                                            ? 'border-violet-400 bg-violet-50 text-violet-800'
+                                            : 'border-slate-200 bg-white text-slate-700 hover:border-violet-300 hover:bg-violet-50'
+                                    }`}
+                                >
+                                    <span className={`h-4 w-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
+                                        selectedIds.includes(d.id) ? 'border-violet-500 bg-violet-500' : 'border-slate-300'
+                                    }`}>
+                                        {selectedIds.includes(d.id) && (
+                                            <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        )}
+                                    </span>
+                                    <span className="flex-1 font-medium">{d.name}</span>
+                                    {d.language && (
+                                        <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-xs font-bold text-indigo-600">{d.language}</span>
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="mt-5 flex justify-end gap-3">
+                            <button type="button" onClick={() => setShowModal(false)} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                                Cancelar
+                            </button>
+                            <button
+                                type="button"
+                                disabled={selectedIds.length === 0 || processing}
+                                onClick={handleLink}
+                                className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-500 disabled:opacity-50 transition-colors"
+                            >
+                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                </svg>
+                                Vincular {selectedIds.length > 0 ? `(${selectedIds.length})` : ''}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )}
+    </>);
+}
+
+export default function Show({ design, printers, settingLogs, allTags, modelDesigns }) {
     const { auth, flash } = usePage().props;
     const [toast, setToast] = useState(null);
     const [showPreview, setShowPreview] = useState(false);
@@ -1188,27 +1399,29 @@ export default function Show({ design, printers, settingLogs, allTags }) {
         <>
         <AuthenticatedLayout
             header={
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <Link href={route('designs.index')} className="text-slate-400 hover:text-slate-600 transition-colors">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    {/* Título */}
+                    <div className="flex items-center gap-3 min-w-0">
+                        <Link href={route('designs.index')} className="shrink-0 text-slate-400 hover:text-slate-600 transition-colors">
                             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                             </svg>
                         </Link>
-                        <div>
-                            <p className="text-sm font-medium text-slate-500 flex items-center gap-1.5">
+                        <div className="min-w-0">
+                            <p className="text-sm font-medium text-slate-500 flex flex-wrap items-center gap-1.5">
                                 {[design.laptop_model?.brand?.name, design.laptop_model?.name].filter(Boolean).join(' · ') || 'Sin modelo especificado'}
                                 {design.language && <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-xs font-bold text-indigo-600">{design.language}</span>}
                             </p>
-                            <h1 className="text-lg font-semibold text-slate-900">{design.name}</h1>
+                            <h1 className="text-lg font-semibold text-slate-900 truncate">{design.name}</h1>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    {/* Acciones */}
+                    <div className="flex flex-wrap items-center gap-1.5">
                         <button
                             onClick={() => setShowPreview(true)}
-                            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors sm:px-4 sm:py-2 sm:text-sm"
                         >
-                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
@@ -1216,28 +1429,41 @@ export default function Show({ design, printers, settingLogs, allTags }) {
                         </button>
                         <a
                             href={route('designs.download', design.id)}
-                            className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors"
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors sm:px-4 sm:py-2 sm:text-sm"
                         >
-                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                             </svg>
                             Descargar
                         </a>
+                        {design.composition_groups?.length > 0 && (
+                            <a
+                                href={route('designs.download-composed', design.id)}
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-700 hover:bg-violet-100 transition-colors sm:px-4 sm:py-2 sm:text-sm"
+                                title="Descarga este diseño junto a todos sus vinculados en un ZIP"
+                            >
+                                <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                </svg>
+                                <span className="hidden xs:inline">Descargar vinculados</span>
+                                <span className="xs:hidden">Vinculados</span>
+                            </a>
+                        )}
                         <Link
                             href={route('designs.edit', design.id)}
-                            className="inline-flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700 hover:bg-amber-100 transition-colors"
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-100 transition-colors sm:px-4 sm:py-2 sm:text-sm"
                         >
-                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
                             Editar
                         </Link>
-                        {auth.user.role === 'admin' && (
+                        {['admin', 'dev'].includes(auth.user.role) && (
                             <button
                                 onClick={handleDelete}
-                                className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 transition-colors"
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100 transition-colors sm:px-4 sm:py-2 sm:text-sm"
                             >
-                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
                                 Eliminar
@@ -1303,6 +1529,9 @@ export default function Show({ design, printers, settingLogs, allTags }) {
                         />
                     </div>
                 </div>
+
+                {/* Composición */}
+                <CompositionCard design={design} modelDesigns={modelDesigns} />
 
                 {/* Imagen de referencia */}
                 <ReferenceImageCard design={design} />

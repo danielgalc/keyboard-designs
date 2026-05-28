@@ -1,7 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 
-const ROLE_LABELS = { admin: 'Admin', operator: 'Técnico' };
+const ROLE_LABELS = { dev: 'Dev', admin: 'Admin', operator: 'Técnico' };
 
 function UserAvatar({ user, size = 'sm' }) {
     const dim = size === 'sm' ? 'h-7 w-7 text-xs' : 'h-8 w-8 text-sm';
@@ -60,7 +60,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                 <NavItem href={route('designs.index')} active={route().current('designs.*')}>
                                     Diseños
                                 </NavItem>
-                                {auth.user.role === 'admin' && (
+                                {['admin', 'dev'].includes(auth.user.role) && (
                                     <>
                                         <NavItem href={route('admin.catalog')} active={route().current('admin.catalog')}>
                                             Catálogo
@@ -115,7 +115,11 @@ export default function AuthenticatedLayout({ header, children }) {
                                         <div className="border-b border-slate-700 px-4 py-2">
                                             <p className="text-xs text-slate-400">Conectado como</p>
                                             <p className="text-sm font-medium text-white truncate">{auth.user.email}</p>
-                                            <span className={`mt-1 inline-block rounded px-1.5 py-0.5 text-xs font-medium ${auth.user.role === 'admin' ? 'bg-indigo-500/20 text-indigo-300' : 'bg-slate-600 text-slate-300'}`}>
+                                            <span className={`mt-1 inline-block rounded px-1.5 py-0.5 text-xs font-medium ${
+                                                auth.user.role === 'dev'   ? 'bg-amber-500/20 text-amber-300' :
+                                                auth.user.role === 'admin' ? 'bg-indigo-500/20 text-indigo-300' :
+                                                'bg-slate-600 text-slate-300'
+                                            }`}>
                                                 {ROLE_LABELS[auth.user.role] ?? auth.user.role}
                                             </span>
                                         </div>
@@ -155,7 +159,11 @@ export default function AuthenticatedLayout({ header, children }) {
                                 <p className="text-sm font-medium text-white truncate">{auth.user.name}</p>
                                 <p className="text-xs text-slate-400 truncate">{auth.user.email}</p>
                             </div>
-                            <span className={`ml-auto shrink-0 rounded px-1.5 py-0.5 text-xs font-medium ${auth.user.role === 'admin' ? 'bg-indigo-500/20 text-indigo-300' : 'bg-slate-600 text-slate-300'}`}>
+                            <span className={`ml-auto shrink-0 rounded px-1.5 py-0.5 text-xs font-medium ${
+                                auth.user.role === 'dev'   ? 'bg-amber-500/20 text-amber-300' :
+                                auth.user.role === 'admin' ? 'bg-indigo-500/20 text-indigo-300' :
+                                'bg-slate-600 text-slate-300'
+                            }`}>
                                 {ROLE_LABELS[auth.user.role] ?? auth.user.role}
                             </span>
                         </div>
@@ -165,7 +173,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         <Link href={route('designs.index')} className="block rounded-md px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white">Diseños</Link>
 
                         {/* Admin */}
-                        {auth.user.role === 'admin' && (
+                        {['admin', 'dev'].includes(auth.user.role) && (
                             <>
                                 <p className="px-3 pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Administración</p>
                                 <Link href={route('admin.catalog')} className="block rounded-md px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white">Catálogo</Link>
@@ -196,7 +204,7 @@ export default function AuthenticatedLayout({ header, children }) {
             )}
 
             {/* Content */}
-            <main>{children}</main>
+            <main className="overflow-x-hidden">{children}</main>
         </div>
     );
 }

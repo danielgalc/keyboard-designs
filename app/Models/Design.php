@@ -68,4 +68,9 @@ class Design extends Model
     {
         return $this->hasMany(DesignComment::class)->latest();
     }
+
+    public function compositionGroups(): BelongsToMany
+    {
+        return $this->belongsToMany(CompositionGroup::class, 'composition_group_design');
+    }
 }

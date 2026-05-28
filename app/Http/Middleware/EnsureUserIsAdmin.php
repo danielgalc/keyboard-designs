@@ -10,7 +10,7 @@ class EnsureUserIsAdmin
     public function handle(Request $request, Closure $next)
     {
         if (! $request->user()?->isAdmin()) {
-            abort(403);
+            return redirect()->route('dashboard');
         }
 
         return $next($request);
