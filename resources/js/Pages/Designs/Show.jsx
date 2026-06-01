@@ -63,7 +63,7 @@ function GalleryModal({ design, printer, onClose }) {
     const handleDelete = (image) => setConfirmImage(image);
 
     return (<>
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:px-4" onClick={onClose}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:px-4">
             <div className="flex max-h-[88vh] w-full sm:max-w-2xl flex-col rounded-t-xl sm:rounded-xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 shrink-0">
@@ -136,7 +136,7 @@ function GalleryModal({ design, printer, onClose }) {
 
             {/* Visor de imagen completa */}
             {viewing && (
-                <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/80 px-4" onClick={() => setViewing(null)}>
+                <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/80 px-4" onClick={e => { e.stopPropagation(); setViewing(null); }}>
                     <img
                         src={route('printer-images.show', viewing.id)}
                         alt={viewing.file_name}
@@ -249,7 +249,7 @@ function TraceabilityModal({ design, printer, settingLogs, verifications, onClos
     const remaining = allEvents.length - PREVIEW_LIMIT;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:px-4" onClick={onClose}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:px-4">
             <div className="flex max-h-[88vh] w-full sm:max-w-lg flex-col rounded-t-xl sm:rounded-xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 shrink-0">
@@ -499,7 +499,7 @@ function SettingsModal({ design, printer, setting, onClose }) {
     );
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:px-4" onClick={onClose}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:px-4">
             <div
                 className={`w-full rounded-t-xl sm:rounded-xl bg-white shadow-2xl flex flex-col ${isMimaki ? 'sm:max-w-4xl' : 'sm:max-w-lg'}`}
                 style={{ maxHeight: '92vh' }}
@@ -645,7 +645,7 @@ function VerificationModal({ design, printer, onClose }) {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:px-4" onClick={onClose}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:px-4">
             <div className="w-full sm:max-w-md rounded-t-xl sm:rounded-xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
                     <div>
@@ -922,7 +922,7 @@ function PreviewModal({ design, onClose }) {
     const previewUrl = route('designs.preview', design.id);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 py-6" onClick={onClose}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 py-6">
             <div className="flex w-full max-w-5xl flex-col rounded-xl bg-white shadow-2xl overflow-hidden" style={{ maxHeight: '90vh' }} onClick={e => e.stopPropagation()}>
                 <div className="flex items-center justify-between border-b border-slate-100 px-6 py-3 shrink-0">
                     <p className="text-sm font-semibold text-slate-800 truncate">{design.file_name}</p>
@@ -1299,7 +1299,7 @@ function CompositionCard({ design, modelDesigns }) {
 
         {/* Modal de vinculación */}
         {showModal && (
-            <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:px-4" onClick={() => setShowModal(false)}>
+            <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:px-4">
                 <div className="w-full sm:max-w-md rounded-t-xl sm:rounded-xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
                     <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
                         <div>
