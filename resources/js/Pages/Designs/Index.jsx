@@ -115,9 +115,21 @@ function DesignRow({ design, printers, onTagClick, siblings = [], isFirst = fals
     );
 }
 
-function ModelSection({ modelName, designs, printers, onTagClick, expanded }) {
-    const [open, setOpen] = useState(false);
-    useEffect(() => { setOpen(expanded); }, [expanded]);
+function ModelSection({ modelName, designs, printers, onTagClick, expanded, storageKey }) {
+    const [open, setOpen] = useState(() => {
+        try { return sessionStorage.getItem(storageKey) === 'true'; } catch { return false; }
+    });
+
+    useEffect(() => {
+        if (expanded) setOpen(true);
+        else { try { setOpen(sessionStorage.getItem(storageKey) === 'true'); } catch { setOpen(false); } }
+    }, [expanded]);
+
+    const toggle = () => setOpen(prev => {
+        const next = !prev;
+        try { sessionStorage.setItem(storageKey, String(next)); } catch {}
+        return next;
+    });
 
     // Para cada diseño, calcula qué hermanos del mismo modelo comparte en composición
     const siblingsMap = useMemo(() => {
@@ -165,7 +177,7 @@ function ModelSection({ modelName, designs, printers, onTagClick, expanded }) {
 
     return (
         <div className="border-b border-slate-100 last:border-0 dark:border-slate-700">
-            <button onClick={() => setOpen(o => !o)} className="flex w-full items-center gap-2 py-2.5 pl-10 pr-5 text-left hover:bg-slate-50 transition-colors dark:hover:bg-slate-700">
+            <button onClick={toggle} className="flex w-full items-center gap-2 py-2.5 pl-10 pr-5 text-left hover:bg-slate-50 transition-colors dark:hover:bg-slate-700">
                 <svg className={`h-3 w-3 text-slate-400 transition-transform ${open ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
@@ -189,13 +201,26 @@ function ModelSection({ modelName, designs, printers, onTagClick, expanded }) {
     );
 }
 
-function DeviceTypeSection({ typeName, models, printers, onTagClick, expanded }) {
-    const [open, setOpen] = useState(false);
-    useEffect(() => { setOpen(expanded); }, [expanded]);
+function DeviceTypeSection({ typeName, models, printers, onTagClick, expanded, storageKey }) {
+    const [open, setOpen] = useState(() => {
+        try { return sessionStorage.getItem(storageKey) === 'true'; } catch { return false; }
+    });
+
+    useEffect(() => {
+        if (expanded) setOpen(true);
+        else { try { setOpen(sessionStorage.getItem(storageKey) === 'true'); } catch { setOpen(false); } }
+    }, [expanded]);
+
+    const toggle = () => setOpen(prev => {
+        const next = !prev;
+        try { sessionStorage.setItem(storageKey, String(next)); } catch {}
+        return next;
+    });
+
     const total = Object.values(models).reduce((sum, arr) => sum + arr.length, 0);
     return (
         <div className="border-b border-slate-100 last:border-0 dark:border-slate-700">
-            <button onClick={() => setOpen(o => !o)} className="flex w-full items-center gap-2 py-3 pl-6 pr-5 text-left hover:bg-slate-50 transition-colors dark:hover:bg-slate-700">
+            <button onClick={toggle} className="flex w-full items-center gap-2 py-3 pl-6 pr-5 text-left hover:bg-slate-50 transition-colors dark:hover:bg-slate-700">
                 <svg className={`h-3.5 w-3.5 text-slate-400 transition-transform ${open ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
@@ -205,7 +230,8 @@ function DeviceTypeSection({ typeName, models, printers, onTagClick, expanded })
                 </span>
             </button>
             {open && Object.entries(models).map(([modelName, designs]) => (
-                <ModelSection key={modelName} modelName={modelName} designs={designs} printers={printers} onTagClick={onTagClick} expanded={expanded} />
+                <ModelSection key={modelName} modelName={modelName} designs={designs} printers={printers} onTagClick={onTagClick} expanded={expanded}
+                    storageKey={`${storageKey}_model_${modelName}`} />
             ))}
         </div>
     );
@@ -219,14 +245,28 @@ function BrandLogo({ brandName }) {
 }
 
 function BrandSection({ brandName, deviceTypes, printers, onTagClick, expanded }) {
-    const [open, setOpen] = useState(false);
-    useEffect(() => { setOpen(expanded); }, [expanded]);
+    const storageKey = `designs_brand_${brandName}`;
+    const [open, setOpen] = useState(() => {
+        try { return sessionStorage.getItem(storageKey) === 'true'; } catch { return false; }
+    });
+
+    useEffect(() => {
+        if (expanded) setOpen(true);
+        else { try { setOpen(sessionStorage.getItem(storageKey) === 'true'); } catch { setOpen(false); } }
+    }, [expanded]);
+
+    const toggle = () => setOpen(prev => {
+        const next = !prev;
+        try { sessionStorage.setItem(storageKey, String(next)); } catch {}
+        return next;
+    });
+
     const total = Object.values(deviceTypes).reduce((sum, models) =>
         sum + Object.values(models).reduce((s, arr) => s + arr.length, 0), 0);
 
     return (
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
-            <button onClick={() => setOpen(o => !o)}
+            <button onClick={toggle}
                 className="flex w-full items-center gap-3 border-b border-slate-100 bg-slate-50 px-5 py-3.5 text-left hover:bg-slate-100 transition-colors dark:border-slate-700 dark:bg-slate-900/40 dark:hover:bg-slate-700">
                 <svg className={`h-4 w-4 text-slate-500 transition-transform ${open ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -238,7 +278,8 @@ function BrandSection({ brandName, deviceTypes, printers, onTagClick, expanded }
             </button>
             {open && Object.entries(deviceTypes).map(([typeKey, models]) => (
                 <DeviceTypeSection key={typeKey} typeName={DEVICE_TYPE_LABELS[typeKey] ?? typeKey}
-                    models={models} printers={printers} onTagClick={onTagClick} expanded={expanded} />
+                    models={models} printers={printers} onTagClick={onTagClick} expanded={expanded}
+                    storageKey={`${storageKey}_type_${typeKey}`} />
             ))}
         </div>
     );
