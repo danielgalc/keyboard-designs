@@ -17,6 +17,8 @@ class LaptopCatalogSeeder extends Seeder
                 ['device_type' => 'laptop', 'name' => 'EliteBook 840 G8'],
                 ['device_type' => 'laptop', 'name' => 'ProBook 450 G7'],
                 ['device_type' => 'laptop', 'name' => 'ProBook 450 G8'],
+                ['device_type' => 'tower',  'name' => 'ProDesk 400 G6'],
+                ['device_type' => 'sff',    'name' => 'EliteDesk 800 G4'],
             ],
             'Dell' => [
                 ['device_type' => 'laptop', 'name' => 'Latitude 5420'],
@@ -24,6 +26,8 @@ class LaptopCatalogSeeder extends Seeder
                 ['device_type' => 'laptop', 'name' => 'Latitude 7420'],
                 ['device_type' => 'laptop', 'name' => 'Inspiron 15 3511'],
                 ['device_type' => 'laptop', 'name' => 'Vostro 3520'],
+                ['device_type' => 'tower',  'name' => 'OptiPlex 7080 Tower'],
+                ['device_type' => 'mini',   'name' => 'OptiPlex 3080 Mini'],
             ],
             'Lenovo' => [
                 ['device_type' => 'laptop', 'name' => 'ThinkPad E15 Gen 2'],

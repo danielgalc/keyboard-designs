@@ -343,6 +343,7 @@ const FLAG_MAP = {
     ES: '/flags/spain.webp',
     EN: '/flags/unitedkingdom.png',
     IT: '/flags/italia.png',
+    FR: '/flags/france.png',
 };
 
 function FlagImg({ lang }) {
